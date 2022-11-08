@@ -29,16 +29,24 @@ export class Project_Scene extends Scene {
 
         // *** Camera
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
+
+        // *** Airplane position
+        this.airplane_model_transform = Mat4.identity();
+
+        // *** Control Panel toggles
+        this.f_pressed = 0;
     }
 
     make_control_panel() {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
-        this.key_triggered_button("Outline", ["o"], () => {
-            console.log("o pressed.");
+        this.key_triggered_button("Fly higher", ["f"], () => {
+            this.f_pressed ^= 1;
         });
     }
 
     display(context, program_state) {
+        // *** Setup
+
         // display():  Called once per frame of animation.
         // Setup -- This part sets up the scene's overall camera matrix, projection matrix, and lights:
         if (!context.scratchpad.controls) {
@@ -56,10 +64,36 @@ export class Project_Scene extends Scene {
 
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         const yellow = hex_color("#fac91a");
-        let model_transform = Mat4.identity();
-
-        this.shapes.torus.draw(context, program_state, model_transform, this.materials.test.override({color: yellow}));
 
         // *** Draw below
+
+        // TODO: Draw airplane.
+        // (Maybe shadows later)
+        this.shapes.torus.draw(context, program_state, this.airplane_model_transform, this.materials.test.override({color: yellow}));
+
+        // TODO: Draw 3D landscape.
+
+        // Keep moving camera up and to the right.
+        let new_camera_location = Mat4.inverse(this.initial_camera_location);
+        new_camera_location = new_camera_location
+            .times(Mat4.translation(t, t/3, 0));
+        new_camera_location = Mat4.inverse(new_camera_location);
+        program_state.set_camera(new_camera_location);
+
+        // Control the airplane.
+        if (this.f_pressed) {
+            this.airplane_model_transform = this.airplane_model_transform
+                .times(Mat4.translation(0.1, 0.8, 0));
+            this.f_pressed ^= 1;
+        } else {
+            this.airplane_model_transform = this.airplane_model_transform
+                .times(Mat4.translation(0.014, - 0.02, 0)); // when it's a function of time it goes down faster as time goes on. 0.015 is straight down wrt t. < 0.015 is left, > is right.
+        }
+
+        // TODO: Draw persisting clouds that drift left per frame.
+        // (Also power ups later)
+
+        // TODO: Detect collisions with clouds and top and bottom of screen.
+
     }
 }

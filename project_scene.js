@@ -215,7 +215,8 @@ export class Project_Scene extends Scene {
         // Calculate left extreme.
         this.viewport_left = this.airplane_model_transform[0][3] - this.viewport_width / 2;
 
-        let cloud_radius = 3; // Adjust after implementing Cloud.
+        // (More a collision radius than anything else.)
+        let cloud_radius = 0.75; // Adjust after implementing Cloud.
 
         // Only keep clouds that are still within the viewport.
         this.cloud_and_pos_array = this.cloud_and_pos_array.filter((cloud_and_pos) => {
@@ -224,8 +225,9 @@ export class Project_Scene extends Scene {
 
         // *** End game if airplane leaves viewport
 
-        // Calculate airplane extremes := airplane_model_transform ± airplane_radius
-        let airplane_radius = 3; // Adjust after implementing Airplane.
+        // (Also a collision radius.)
+        // Calculate horizontal airplane extremes := airplane_model_transform ± airplane_radius
+        let airplane_radius = 0.75; // Adjust after implementing Airplane.
 
         let airplane_top = this.airplane_model_transform[1][3] + airplane_radius;
         let airplane_bottom = this.airplane_model_transform[1][3] - airplane_radius;
@@ -235,15 +237,25 @@ export class Project_Scene extends Scene {
             this.game_over(context, program_state);
         }
 
-        // *** TODO: Detect airplane-cloud collisions.
-        //  https://learnopengl.com/In-Practice/2D-Game/Collisions/Collision-detection
+        // *** Detect airplane-cloud collisions.
 
-        // Calculate airplane extremes.
-        let left_airplane = this.airplane_model_transform[0][3] + airplane_radius;
-        let right_airplane = this.airplane_model_transform[0][3] - airplane_radius;
+        // Calculate vertical airplane extremes.
+        let airplane_left = this.airplane_model_transform[0][3] - airplane_radius;
+        let airplane_right = this.airplane_model_transform[0][3] + airplane_radius;
 
-        // plane.right > cloud.left && cloud.right > plane.left
-        // plane.top > cloud.bottom && cloud.top > plane.bottom
+        for (let cloud_and_pos of this.cloud_and_pos_array) {
+            let cloud_right = cloud_and_pos.x_translation + cloud_radius;
+            let cloud_left = cloud_and_pos.x_translation - cloud_radius;
+            let cloud_top = cloud_and_pos.y_translation + cloud_radius;
+            let cloud_bottom = cloud_and_pos.y_translation - cloud_radius;
+
+            let flag1 = ((airplane_right > cloud_left) && (cloud_right > airplane_left)) ? 1 : 0;
+            let flag2 = ((airplane_top > cloud_bottom) && (cloud_top > airplane_bottom)) ? 1 : 0;
+
+            if (flag1 && flag2) {
+                this.game_over(context, program_state);
+            }
+        }
 
         // *** Debug helper
 

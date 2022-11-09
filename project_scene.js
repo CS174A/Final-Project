@@ -45,12 +45,16 @@ export class Project_Scene extends Scene {
         this.debug_logs = 0;
         this.start_game = 0;
         this.is_game_over = 0;
+        this.first_start = 1;
     }
 
     make_control_panel() {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
         this.key_triggered_button("Start", ["s"], () => {
             this.start_game = 1;
+            if (this.is_game_over) {
+                this.restart_game()
+            }
         });
         this.key_triggered_button("Fly higher", ["f"], () => {
             this.fly_higher ^= 1;
@@ -66,11 +70,26 @@ export class Project_Scene extends Scene {
         this.shapes.text.draw(context, program_state, text_model_transform, this.text_image);
     }
 
+    restart_game() {
+        this.airplane_model_transform = Mat4.identity();
+        this.start_game = 1;
+        this.is_game_over = 0;
+        this.first_start = 0; // redundant.
+    }
+
     game_over(context, program_state) {
+        // Translate everything to 0 on the y-axis
+        const y_translation = this.airplane_model_transform[1][3];
         let text_model_transform = this.airplane_model_transform
-        this.print_string(context, program_state, text_model_transform, "Game Over.")
+            .times(Mat4.translation(-15, - y_translation, -5));
+        this.print_string(context, program_state, text_model_transform, "Game Over :(")
+        text_model_transform = text_model_transform
+            .times(Mat4.translation(-1, -3 , 0));
+        this.print_string(context, program_state, text_model_transform, "Press [s] to start over")
+
         this.is_game_over = 1;
         this.start_game = 0;
+        this.first_start = 0;
     }
 
     display(context, program_state) {
@@ -99,13 +118,18 @@ export class Project_Scene extends Scene {
         const sand = hex_color("fdee73");
         // *** Draw below *** //
 
-        // If the game hasn't started and isn't over already
+        // If the game is starting for the first time ever.
         if (!this.start_game) {
-            if (!this.is_game_over) {
+            if (this.first_start) {
                 let text_model_transform = this.airplane_model_transform
-                this.print_string(context, program_state, text_model_transform, "Press [s] to Start.");
-            } else {
-                this.game_over(context, program_state)
+                    .times(Mat4.translation(-12.5, 0, -5));
+                this.print_string(context, program_state, text_model_transform, "Press [s] to Start");
+                text_model_transform = text_model_transform
+                    .times(Mat4.translation(0, -3, 0));
+                this.print_string(context, program_state, text_model_transform, "Press [f] to Fly")
+            }
+            if (this.is_game_over) {
+                this.game_over(context, program_state);
             }
             return;
         }

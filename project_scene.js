@@ -35,8 +35,17 @@ export class Project_Scene extends Scene {
 
         // *** Camera
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
+        // Depends on context:
         this.viewport_height = 0;
         this.viewport_width = 0;
+
+        // Viewport extremes
+        this.viewport_top = 10.5;
+        this.viewport_bottom = -15;
+
+        // airplane_model_transform ± (viewport_width / 2)
+        this.viewport_right = 0;
+        this.viewport_left = 0;
 
         // *** Airplane position
         this.airplane_model_transform = Mat4.identity();
@@ -203,31 +212,41 @@ export class Project_Scene extends Scene {
 
         // *** Delete invisible clouds
 
-        // Todo: Always:
-        // Check if any cloud has left viewport
-        // Delete it from cloud_array
+        // Calculate left extreme.
+        this.viewport_left = this.airplane_model_transform[0][3] - this.viewport_width / 2;
 
+        let cloud_radius = 3; // Adjust after implementing Cloud.
 
-        // *** TODO: Detect collisions with clouds and top and bottom of screen.
-        //  https://learnopengl.com/In-Practice/2D-Game/Collisions/Collision-detection
+        // Only keep clouds that are still within the viewport.
+        this.cloud_and_pos_array = this.cloud_and_pos_array.filter((cloud_and_pos) => {
+            return ((cloud_and_pos.x_translation + cloud_radius) > this.viewport_left);
+        })
 
-        let size = 3; // Adjust after implementing airplane.
+        // *** End game if airplane leaves viewport
 
-        // Get max left, right, top, bottom positions of airplane := model_transform ± size
-        let left_airplane = this.airplane_model_transform[0][3] + size;
-        let right_airplane = this.airplane_model_transform[0][3] - size;
-        let top_airplane = this.airplane_model_transform[1][3] + size;
-        let bottom_airplane = this.airplane_model_transform[1][3] - size;
+        // Calculate airplane extremes := airplane_model_transform ± airplane_radius
+        let airplane_radius = 3; // Adjust after implementing Airplane.
 
-        // Check if airplane leaves viewport.
-        if (top_airplane >= 10.5 || bottom_airplane <= -15) {
+        let airplane_top = this.airplane_model_transform[1][3] + airplane_radius;
+        let airplane_bottom = this.airplane_model_transform[1][3] - airplane_radius;
+
+        // Check if airplane goes above or below viewport extremes.
+        if (airplane_top >= this.viewport_top || airplane_bottom <= this.viewport_bottom) {
             this.game_over(context, program_state);
         }
+
+        // *** TODO: Detect airplane-cloud collisions.
+        //  https://learnopengl.com/In-Practice/2D-Game/Collisions/Collision-detection
+
+        // Calculate airplane extremes.
+        let left_airplane = this.airplane_model_transform[0][3] + airplane_radius;
+        let right_airplane = this.airplane_model_transform[0][3] - airplane_radius;
 
         // plane.right > cloud.left && cloud.right > plane.left
         // plane.top > cloud.bottom && cloud.top > plane.bottom
 
-        // Add any variables you want to log in here.
+        // *** Debug helper
+
         if (this.debug_logs) {
             // console.log("top_airplane:", top_airplane, "bottom_airplane:", bottom_airplane)
             // console.log("left_airplane:", left_airplane, "right_airplane:", right_airplane);

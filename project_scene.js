@@ -44,6 +44,9 @@ export class Project_Scene extends Scene {
         this.debug_logs = 0;
         this.start_game = 0;
         this.is_game_over = 0;
+
+        // *** Text helpers
+        this.top_death = 0;
     }
 
     make_control_panel() {
@@ -65,9 +68,27 @@ export class Project_Scene extends Scene {
         this.shapes.text.draw(context, program_state, text_model_transform, this.text_image);
     }
 
+    restart_game() {
+
+    }
+
     game_over(context, program_state) {
-        let text_model_transform = this.airplane_model_transform
-        this.print_string(context, program_state, text_model_transform, "Game Over.")
+        if (this.top_death) {
+            let text_model_transform = this.airplane_model_transform
+                .times(Mat4.translation(-15, -8, -5));
+            this.print_string(context, program_state, text_model_transform, "Game Over :(")
+            text_model_transform = text_model_transform
+                .times(Mat4.translation(-1, -3 , 0));
+            this.print_string(context, program_state, text_model_transform, "Press [s] to start over")
+        } else {
+            let text_model_transform = this.airplane_model_transform
+                .times(Mat4.translation(-15, 8 + 3, -5));
+            this.print_string(context, program_state, text_model_transform, "Game Over :(")
+            text_model_transform = text_model_transform
+                .times(Mat4.translation(-1, -3, 0));
+            this.print_string(context, program_state, text_model_transform, "Press [s] to start over")
+        }
+
         this.is_game_over = 1;
         this.start_game = 0;
     }
@@ -99,7 +120,11 @@ export class Project_Scene extends Scene {
         if (!this.start_game) {
             if (!this.is_game_over) {
                 let text_model_transform = this.airplane_model_transform
-                this.print_string(context, program_state, text_model_transform, "Press [s] to Start.");
+                    .times(Mat4.translation(-12.5, 0, -5));
+                this.print_string(context, program_state, text_model_transform, "Press [s] to Start");
+                text_model_transform = text_model_transform
+                    .times(Mat4.translation(0, -3, 0));
+                this.print_string(context, program_state, text_model_transform, "Press [f] to Fly")
             } else {
                 this.game_over(context, program_state)
             }
@@ -146,6 +171,9 @@ export class Project_Scene extends Scene {
 
         // Check if airplane leaves viewport.
         if (top_airplane >= 10.5 || bottom_airplane <= -15) {
+            if (top_airplane >= 10.5) { // ran into top of viewport.
+                this.top_death = 1;
+            }
             this.game_over(context, program_state);
         }
 

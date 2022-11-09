@@ -35,6 +35,8 @@ export class Project_Scene extends Scene {
 
         // *** Camera
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
+        this.viewport_height = 0;
+        this.viewport_width = 0;
 
         // *** Airplane position
         this.airplane_model_transform = Mat4.identity();
@@ -45,6 +47,11 @@ export class Project_Scene extends Scene {
         this.start_game = 0;
         this.is_game_over = 0;
         this.first_start = 1;
+        this.restart = 0;
+
+        // *** Cloud storage
+        this.cloud_and_pos_array = []
+        this.cloud_creation_id = [];
     }
 
     make_control_panel() {
@@ -74,6 +81,9 @@ export class Project_Scene extends Scene {
         this.start_game = 1;
         this.is_game_over = 0;
         this.first_start = 0; // redundant.
+        this.restart = 1;
+        this.cloud_and_pos_array.length = 0;
+        clearInterval(this.cloud_creation_id);
     }
 
     game_over(context, program_state) {
@@ -88,7 +98,7 @@ export class Project_Scene extends Scene {
 
         this.is_game_over = 1;
         this.start_game = 0;
-        this.first_start = 0;
+        this.first_start = 0; // redundant.
     }
 
     display(context, program_state) {
@@ -105,6 +115,7 @@ export class Project_Scene extends Scene {
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, .1, 1000);
 
+        // TODO: move light source to follow the plane and camera.
         const light_position = vec4(0, 5, 5, 1);
         // The parameters of the Light are: position, color, size
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
@@ -130,22 +141,44 @@ export class Project_Scene extends Scene {
             return;
         }
 
-
-        // *** TODO: Draw airplane.
-        // (Maybe shadows later)
-        this.shapes.torus.draw(context, program_state, this.airplane_model_transform, this.materials.test.override({color: yellow}));
-
-        // *** TODO: Draw 3D landscape.
+        // Viewport width calculations:
+        const aspect_ratio = context.width / context.height;
+        this.viewport_height = 10.5 - - 15;
+        this.viewport_width = aspect_ratio * this.viewport_height; // 1080 / 600 * 25.5 = 45.9
 
         // Keep moving camera sideways.
         let new_camera_location = Mat4.inverse(this.initial_camera_location);
         new_camera_location = new_camera_location
-            .times(Mat4.translation(t, 0, 0)); // this is always a brand new translation by t.
+            .times(Mat4.translation(t, 0, 0)); // this is always a brand-new translation by t.
         new_camera_location = Mat4.inverse(new_camera_location);
         program_state.set_camera(new_camera_location);
 
+        // *** Create clouds
+
+        // Float in one new cloud every 2 seconds from a random position on the y-axis.
+        // Store the creation function inside the constructor so that the clouds persist across frames.
+        if (this.first_start || this.restart) {
+            this.cloud_creation_id = setInterval(() => {
+                // Compute the starting point of cloud and by how many units to drift left.
+                const cloud = new defs.Torus(15, 15);
+                const x_translation = this.airplane_model_transform[0][3] + this.viewport_width / 2;
+                const y_translation = Math.random() * (Math.floor(4) - Math.ceil(-12) + 1) + Math.ceil(-8);
+
+                // Store the info in the array.
+                this.cloud_and_pos_array.push({cloud, x_translation, y_translation});
+            }, 2000);
+            this.first_start = 0;
+            this.restart = 0;
+        }
+
+        // *** TODO: Draw airplane.
+        this.shapes.torus.draw(context, program_state, this.airplane_model_transform, this.materials.test.override({color: yellow}));
+
+        // *** TODO: Draw 3D landscape.
+
         // *** Control the airplane.
-        let previous_translation_x =  this.airplane_model_transform[0][3]; // t is applied on top of an existing, cumulative translation of ex t.
+
+        let previous_translation_x =  this.airplane_model_transform[0][3]; // t is applied on top of an existing, cumulative translation of t.
         if (this.fly_higher) {
             this.airplane_model_transform = this.airplane_model_transform
                 .times(Mat4.translation(t - previous_translation_x, 0.8, 0));
@@ -155,11 +188,29 @@ export class Project_Scene extends Scene {
                 .times(Mat4.translation(t - previous_translation_x, - 0.04, 0))
         }
 
-        // *** TODO: Draw persisting clouds that drift left per frame.
-        // (Also power ups later)
+        // *** Draw clouds
+
+        for (let cloud_and_pos of this.cloud_and_pos_array) {
+            // Calculate and store new translation to drift cloud smoothly to the left.
+            cloud_and_pos.x_translation = cloud_and_pos.x_translation - 0.05;
+
+            let cloud_model_transform = Mat4.identity();
+            cloud_model_transform = cloud_model_transform
+                .times(Mat4.translation(cloud_and_pos.x_translation, cloud_and_pos.y_translation, 0));
+
+            cloud_and_pos.cloud.draw(context, program_state, cloud_model_transform, this.materials.test.override({color: yellow}))
+        }
+
+        // *** Delete invisible clouds
+
+        // Todo: Always:
+        // Check if any cloud has left viewport
+        // Delete it from cloud_array
+
 
         // *** TODO: Detect collisions with clouds and top and bottom of screen.
         //  https://learnopengl.com/In-Practice/2D-Game/Collisions/Collision-detection
+
         let size = 3; // Adjust after implementing airplane.
 
         // Get max left, right, top, bottom positions of airplane := model_transform ± size
@@ -176,11 +227,12 @@ export class Project_Scene extends Scene {
         // plane.right > cloud.left && cloud.right > plane.left
         // plane.top > cloud.bottom && cloud.top > plane.bottom
 
-
         // Add any variables you want to log in here.
         if (this.debug_logs) {
-            console.log("top_airplane", top_airplane)
-            console.log("bottom_airplane", bottom_airplane)
+            // console.log("top_airplane:", top_airplane, "bottom_airplane:", bottom_airplane)
+            // console.log("left_airplane:", left_airplane, "right_airplane:", right_airplane);
+            // console.log("viewport width:", this.viewport_width);
+            console.log("cloud_and_pos_array.length:", this.cloud_and_pos_array.length);
             this.debug_logs ^= 1;
         }
 

@@ -1,9 +1,9 @@
 import {defs, tiny} from './examples/common.js';
 
 const {
-    Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene,
+    Vector, Vector3, vec, vec3, vec4, color, hex_color, Shader, Matrix, Mat4, Light, Shape, Material, Scene, Texture
 } = tiny;
-const { Base_Shader } = defs;
+import {Text_Line} from "./examples/text-demo.js";
 
 export class Project_Scene extends Scene {
     constructor() {
@@ -19,6 +19,7 @@ export class Project_Scene extends Scene {
             circle: new defs.Regular_2D_Polygon(1, 15),
             s1: new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(1),
             s4: new defs.Subdivision_Sphere(4),
+            text: new Text_Line(30)
         };
 
         // *** Materials
@@ -26,6 +27,11 @@ export class Project_Scene extends Scene {
             test: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
         }
+        const texture = new defs.Textured_Phong(1);
+        this.text_image = new Material(texture, {
+            ambient: 1, diffusivity: 0, specularity: 0,
+            texture: new Texture("assets/text.png")
+        });
 
         // *** Camera
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
@@ -35,21 +41,35 @@ export class Project_Scene extends Scene {
 
         // *** Control Panel toggles
         this.fly_higher = 0;
-        this.log_to_console = 0;
+        this.debug_logs = 0;
+        this.start_game = 0;
+        this.is_game_over = 0;
     }
 
     make_control_panel() {
         // Draw the scene's buttons, setup their actions and keyboard shortcuts, and monitor live measurements.
+        this.key_triggered_button("Start", ["s"], () => {
+            this.start_game = 1;
+        });
         this.key_triggered_button("Fly higher", ["f"], () => {
             this.fly_higher ^= 1;
         });
-        this.key_triggered_button("Log to console", ["l"], () => {
-            this.log_to_console ^= 1;
+        this.new_line();
+        this.key_triggered_button("Debug logs", ["d"], () => {
+            this.debug_logs ^= 1;
         });
     }
 
-    game_over() {
+    print_string(context, program_state, text_model_transform, line) {
+        this.shapes.text.set_string(line, context.context);
+        this.shapes.text.draw(context, program_state, text_model_transform, this.text_image);
+    }
 
+    game_over(context, program_state) {
+        let text_model_transform = this.airplane_model_transform
+        this.print_string(context, program_state, text_model_transform, "Game Over.")
+        this.is_game_over = 1;
+        this.start_game = 0;
     }
 
     display(context, program_state) {
@@ -74,6 +94,18 @@ export class Project_Scene extends Scene {
         const yellow = hex_color("#fac91a");
 
         // *** Draw below *** //
+
+        // If the game hasn't started and isn't over already
+        if (!this.start_game) {
+            if (!this.is_game_over) {
+                let text_model_transform = this.airplane_model_transform
+                this.print_string(context, program_state, text_model_transform, "Press [s] to Start.");
+            } else {
+                this.game_over(context, program_state)
+            }
+            return;
+        }
+
 
         // *** TODO: Draw airplane.
         // (Maybe shadows later)
@@ -113,21 +145,19 @@ export class Project_Scene extends Scene {
         let bottom_airplane = this.airplane_model_transform[1][3] - size;
 
         // Check if airplane leaves viewport.
-        if (top_airplane >= 10.5) {
-            console.log("Game over. Player touched the top.")
-        } else if (bottom_airplane <= -15) {
-            console.log("Game over. Player touched the bottom.")
+        if (top_airplane >= 10.5 || bottom_airplane <= -15) {
+            this.game_over(context, program_state);
         }
-
 
         // plane.right > cloud.left && cloud.right > plane.left
         // plane.top > cloud.bottom && cloud.top > plane.bottom
 
 
-        if (this.log_to_console) {
+        // Add any variables you want to log in here.
+        if (this.debug_logs) {
             console.log("top_airplane", top_airplane)
             console.log("bottom_airplane", bottom_airplane)
-            this.log_to_console ^= 1;
+            this.debug_logs ^= 1;
         }
 
     }

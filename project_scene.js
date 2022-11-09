@@ -17,6 +17,7 @@ export class Project_Scene extends Scene {
             torus2: new defs.Torus(3, 40), // columns = edges
             sphere: new defs.Subdivision_Sphere(4),
             circle: new defs.Regular_2D_Polygon(1, 15),
+            cube: new defs.Cube(),
             s1: new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(1),
             s4: new defs.Subdivision_Sphere(4),
             text: new Text_Line(30)
@@ -92,7 +93,10 @@ export class Project_Scene extends Scene {
 
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
         const yellow = hex_color("#fac91a");
-
+        // grass (or cactus)
+        const green = hex_color("004225");
+        // desert sand
+        const sand = hex_color("fdee73");
         // *** Draw below *** //
 
         // If the game hasn't started and isn't over already
@@ -113,6 +117,19 @@ export class Project_Scene extends Scene {
 
         // *** TODO: Draw 3D landscape.
 
+        /* sun */
+        let sun_transform = Mat4.identity();
+        sun_transform = sun_transform.times(Mat4.translation(13,6,0)).times(Mat4.scale(2,2,2));
+        this.shapes.sphere.draw(context, program_state, sun_transform, this.materials.test.override({color: yellow, ambient: 1}));
+        
+        /* grass floor block */
+        let land_transform = Mat4.identity();
+        land_transform = land_transform.times(Mat4.scale(100,1,7)).times(Mat4.translation(0, -14, 0));
+        this.shapes.cube.draw(context, program_state, land_transform, this.materials.test.override({color: sand, ambient: 0.4}));
+
+        /* grass textures */
+        
+        
         // Keep moving camera sideways.
         let new_camera_location = Mat4.inverse(this.initial_camera_location);
         new_camera_location = new_camera_location

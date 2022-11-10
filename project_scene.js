@@ -26,8 +26,8 @@ export class Project_Scene extends Scene {
         
         // airplane pieces
         this.plane = {
-            cylinder: new defs.Rounded_Capped_Cylinder(40, 40),
-            tip: new defs.Rounded_Closed_Cone(30,30),
+            cylinder: new defs.Rounded_Capped_Cylinder(200, 200),
+            cone: new defs.Rounded_Closed_Cone(30,30),
             blade: new defs.Cube(),
         }
 
@@ -66,12 +66,21 @@ export class Project_Scene extends Scene {
         // *** Airplane position
         this.airplane_model_transform = Mat4.identity();
 
-        // base testing
-        this.base_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,1.25));
+        // air plane body
+        this.base_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,1.45));
         this.front_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,0.5));
         this.tip_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.25,0.25,0.25));
         this.blade_transform = Mat4.identity();
+        this.wing1_transform = Mat4.rotation(Math.PI/2, 1, 0, 0).times(Mat4.scale(0.5, 1.75, 0.05));
+        this.wing2_transform = Mat4.rotation(Math.PI/2, 1, 0, 0).times(Mat4.scale(0.5, 1.5, 0.09));
+        this.wing3_transform = Mat4.rotation(Math.PI/2, 1, 0, 0).times(Mat4.scale(0.5, 1.5, 0.09));
+
+        this.backwing1_transform = Mat4.rotation(Math.PI/2, 1, 0, 0).times(Mat4.scale(0.25, 1.2, 0.05));
+        this.backwing2_transform = Mat4.rotation(Math.PI/3, 0, 0, 1).times(Mat4.rotation(Math.PI/2, 0, 0, 1).times(Mat4.scale(0.3, 0.2, 0.05)));
+        this.backwing3_transform = Mat4.rotation(Math.PI/2, 1, 0, 0).times(Mat4.scale(0.5, 0.75, 0.09));
+        
         this.pipe_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.1,0.1,0.5));
+        this.back_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,-1.25));
         
 
  
@@ -211,10 +220,9 @@ export class Project_Scene extends Scene {
 
 
         // *** TODO: Draw airplane.
-        this.shapes.torus.draw(context, program_state, this.airplane_model_transform, this.materials.test.override({color: yellow}));
+        //this.shapes.torus.draw(context, program_state, this.airplane_model_transform, this.materials.test.override({color: yellow}));
 
         // draw base of plane:
-        //this.blade_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.2,1.25,0.05));
         this.blade_transform = Mat4.identity().times(Mat4.rotation(10*t, 1, 0, 0)
             .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
             .times(Mat4.scale(0.2, 1.25, 0.05)));
@@ -225,23 +233,47 @@ export class Project_Scene extends Scene {
 
         //this.blade_transform =  this.blade_transform.times(Mat4.rotation(t/500, 0, 0, 1));
 
-
         for (let i = 0; i < 3; i++){
-            this.base_transform[i][3] = this.airplane_model_transform[i][3] + 4;
-            this.front_transform[i][3] = this.airplane_model_transform[i][3] + 4;
-            this.tip_transform[i][3] = this.airplane_model_transform[i][3] + 4;
-            this.pipe_transform[i][3] = this.airplane_model_transform[i][3] + 4;
-            blade_temp[i][3] = this.airplane_model_transform[i][3] + 4;
+            this.base_transform[i][3] = this.airplane_model_transform[i][3];
+            this.front_transform[i][3] = this.airplane_model_transform[i][3];
+            this.tip_transform[i][3] = this.airplane_model_transform[i][3];
+            this.pipe_transform[i][3] = this.airplane_model_transform[i][3];
+            this.back_transform[i][3] = this.airplane_model_transform[i][3];
+            this.wing1_transform[i][3] = this.airplane_model_transform[i][3];
+            this.wing2_transform[i][3] = this.airplane_model_transform[i][3];
+            this.wing3_transform[i][3] = this.airplane_model_transform[i][3];
+            this.backwing1_transform[i][3] = this.airplane_model_transform[i][3];
+            this.backwing2_transform[i][3] = this.airplane_model_transform[i][3];
+            this.backwing3_transform[i][3] = this.airplane_model_transform[i][3];
+            blade_temp[i][3] = this.airplane_model_transform[i][3];
         }
         this.tip_transform[0][3] += 1.5;
         this.front_transform[0][3] += 0.7;
         this.pipe_transform[0][3] += 1.2;
+        this.back_transform[0][3] -= 1.8;
+        this.wing1_transform[1][3] -= 0.25;
+        this.wing2_transform[1][3] -= 0.25;
+        this.wing2_transform[2][3] += 2;
+        this.wing3_transform[1][3] -= 0.25;
+        this.wing3_transform[2][3] -= 2;
+        this.backwing1_transform[0][3] -= 2.73;
+        this.backwing2_transform[0][3] -= 2.8;
+        this.backwing2_transform[1][3] += 0.1;
+        
+        
+        
         blade_temp[0][3] += 1.2;
         this.plane.cylinder.draw(context, program_state, this.base_transform, this.materials.test2);
-        this.plane.tip.draw(context, program_state, this.tip_transform, this.materials.test4);
+        this.plane.cone.draw(context, program_state, this.tip_transform, this.materials.test4);
         this.plane.cylinder.draw(context, program_state, this.front_transform, this.materials.test3);
         this.plane.blade.draw(context, program_state, blade_temp, this.materials.test2);
         this.plane.cylinder.draw(context, program_state, this.pipe_transform, this.materials.test3);
+        this.plane.cone.draw(context, program_state, this.back_transform, this.materials.test2);
+        this.plane.blade.draw(context, program_state, this.wing1_transform, this.materials.test2);
+        this.plane.cylinder.draw(context, program_state, this.wing2_transform, this.materials.test2);
+        this.plane.cylinder.draw(context, program_state, this.wing3_transform, this.materials.test2);
+        this.plane.cylinder.draw(context, program_state, this.backwing1_transform, this.materials.test2);
+        this.plane.cylinder.draw(context, program_state, this.backwing2_transform, this.materials.test2);
         // *** TODO: Draw 3D landscape.
 
         /* sun */

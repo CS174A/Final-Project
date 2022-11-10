@@ -305,8 +305,6 @@ export class Project_Scene extends Scene {
         this.shapes.s1.draw(context, program_state, this.sand_transform3, this.materials.sand);
 
         /* sand terrain generator */
-        
-
 
         // *** Control the airplane.
 

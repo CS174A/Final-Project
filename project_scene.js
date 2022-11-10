@@ -21,7 +21,8 @@ export class Project_Scene extends Scene {
             cube: new defs.Cube(),
             s1: new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(1),
             s4: new defs.Subdivision_Sphere(4),
-            text: new Text_Line(30)
+            text: new Text_Line(30),
+            triangle: new defs.Triangle(),
         };
         
         // airplane pieces
@@ -43,6 +44,9 @@ export class Project_Scene extends Scene {
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
             sun: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#fbd934")}),
+            sand: new Material(new defs.Phong_Shader(),
+                {ambient: 0.8, diffusivity: 0.5, specularity: 0.5, color: hex_color("#fdee73")}),
+
         }
         const texture = new defs.Textured_Phong(1);
         this.text_image = new Material(texture, {
@@ -72,6 +76,9 @@ export class Project_Scene extends Scene {
         this.sun_transform = Mat4.scale(15,15,15).times(Mat4.translation(0,0,-2.5));
         this.sky_transform = Mat4.translation(0,0,-30).times(Mat4.scale(100,100,1))
         this.floor_transform = Mat4.scale(50,1,7).times(Mat4.translation(0, -14, 0));
+        this.sand_transform = Mat4.scale(9,3,3).times(Mat4.translation(0,-4.75,-2)).times(Mat4.rotation(Math.PI/2,1,0,1));
+        this.sand_transform2 = Mat4.scale(9,3,3).times(Mat4.translation(2,-4.75,-1.5)).times(Mat4.rotation(Math.PI/4,1,1,1));
+        this.sand_transform3 = Mat4.scale(9,3,4).times(Mat4.translation(1.7,-4.75,-2)).times(Mat4.rotation(Math.PI/4,1,1,0));
 
         // air plane body
         this.base_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,1.45));
@@ -88,6 +95,8 @@ export class Project_Scene extends Scene {
         
         this.pipe_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.1,0.1,0.5));
         this.back_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,-1.25));
+
+
         
 
  
@@ -290,10 +299,13 @@ export class Project_Scene extends Scene {
         
         this.shapes.sphere.draw(context, program_state, this.sun_transform, this.materials.sun);
         this.shapes.cube.draw(context, program_state, this.sky_transform, this.materials.sun.override({color: skyblue}));
-        this.shapes.cube.draw(context, program_state, this.floor_transform, this.materials.sun.override({color: sand}));
+        this.shapes.cube.draw(context, program_state, this.floor_transform, this.materials.sand);
+        this.shapes.s1.draw(context, program_state, this.sand_transform, this.materials.sand);
+        this.shapes.s1.draw(context, program_state, this.sand_transform2, this.materials.sand);
+        this.shapes.s1.draw(context, program_state, this.sand_transform3, this.materials.sand);
 
-        /* grass textures */
-
+        /* sand terrain generator */
+        
 
 
         // *** Control the airplane.

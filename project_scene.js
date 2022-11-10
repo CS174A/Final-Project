@@ -5,6 +5,7 @@ const {
 } = tiny;
 import {Text_Line} from "./examples/text-demo.js";
 
+
 export class Project_Scene extends Scene {
     constructor() {
         // constructor(): Scenes begin by populating initial values like the Shapes and Materials they'll need.
@@ -22,19 +23,33 @@ export class Project_Scene extends Scene {
             s4: new defs.Subdivision_Sphere(4),
             text: new Text_Line(30)
         };
+        
+        // airplane pieces
+        this.plane = {
+            cylinder: new defs.Rounded_Capped_Cylinder(40, 40),
+            tip: new defs.Rounded_Closed_Cone(30,30),
+            blade: new defs.Cube(),
+        }
 
         // *** Materials
         this.materials = {
             test: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
+            test2: new Material(new defs.Phong_Shader(),
+                {ambient: .4, diffusivity: .6, color: hex_color("#b90e0a")}),
+            test3: new Material(new defs.Phong_Shader(),
+                {ambient: .4, diffusivity: .6, color: hex_color("#e7decc")}),
+            test4: new Material(new defs.Phong_Shader(),
+                {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
+
         }
         const texture = new defs.Textured_Phong(1);
         this.text_image = new Material(texture, {
             ambient: 1, diffusivity: 0, specularity: 0,
             texture: new Texture("assets/text.png")
         });
-
-        // *** Camera
+        
+        //Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
         // Depends on context:
         this.viewport_height = 0;
@@ -51,6 +66,16 @@ export class Project_Scene extends Scene {
         // *** Airplane position
         this.airplane_model_transform = Mat4.identity();
 
+        // base testing
+        this.base_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,1.25));
+        this.front_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,0.5));
+        this.tip_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.25,0.25,0.25));
+        this.blade_transform = Mat4.identity();
+        this.pipe_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.1,0.1,0.5));
+        
+
+ 
+        
         // *** Control Panel toggles
         this.fly_higher = 0;
         this.debug_logs = 0;
@@ -184,9 +209,39 @@ export class Project_Scene extends Scene {
         const green = hex_color("004225"); // grass (or cactus)
         const sand = hex_color("fdee73"); // desert sand
 
+
         // *** TODO: Draw airplane.
         this.shapes.torus.draw(context, program_state, this.airplane_model_transform, this.materials.test.override({color: yellow}));
 
+        // draw base of plane:
+        //this.blade_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.2,1.25,0.05));
+        this.blade_transform = Mat4.identity().times(Mat4.rotation(10*t, 1, 0, 0)
+            .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
+            .times(Mat4.scale(0.2, 1.25, 0.05)));
+        
+        let blade_temp = this.blade_transform;
+        console.log(blade_temp);
+        
+
+        //this.blade_transform =  this.blade_transform.times(Mat4.rotation(t/500, 0, 0, 1));
+
+
+        for (let i = 0; i < 3; i++){
+            this.base_transform[i][3] = this.airplane_model_transform[i][3] + 4;
+            this.front_transform[i][3] = this.airplane_model_transform[i][3] + 4;
+            this.tip_transform[i][3] = this.airplane_model_transform[i][3] + 4;
+            this.pipe_transform[i][3] = this.airplane_model_transform[i][3] + 4;
+            blade_temp[i][3] = this.airplane_model_transform[i][3] + 4;
+        }
+        this.tip_transform[0][3] += 1.5;
+        this.front_transform[0][3] += 0.7;
+        this.pipe_transform[0][3] += 1.2;
+        blade_temp[0][3] += 1.2;
+        this.plane.cylinder.draw(context, program_state, this.base_transform, this.materials.test2);
+        this.plane.tip.draw(context, program_state, this.tip_transform, this.materials.test4);
+        this.plane.cylinder.draw(context, program_state, this.front_transform, this.materials.test3);
+        this.plane.blade.draw(context, program_state, blade_temp, this.materials.test2);
+        this.plane.cylinder.draw(context, program_state, this.pipe_transform, this.materials.test3);
         // *** TODO: Draw 3D landscape.
 
         /* sun */

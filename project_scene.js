@@ -41,7 +41,8 @@ export class Project_Scene extends Scene {
                 {ambient: .4, diffusivity: .6, color: hex_color("#e7decc")}),
             test4: new Material(new defs.Phong_Shader(),
                 {ambient: .4, diffusivity: .6, color: hex_color("#ffffff")}),
-
+            sun: new Material(new defs.Phong_Shader(),
+                {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#fbd934")}),
         }
         const texture = new defs.Textured_Phong(1);
         this.text_image = new Material(texture, {
@@ -65,6 +66,12 @@ export class Project_Scene extends Scene {
 
         // *** Airplane position
         this.airplane_model_transform = Mat4.identity();
+
+        // landscape:
+        //this.sun_transform = Mat4.identity();
+        this.sun_transform = Mat4.scale(15,15,15).times(Mat4.translation(0,0,-2.5));
+        this.sky_transform = Mat4.translation(0,0,-30).times(Mat4.scale(100,100,1))
+        this.floor_transform = Mat4.scale(50,1,7).times(Mat4.translation(0, -14, 0));
 
         // air plane body
         this.base_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,1.45));
@@ -163,7 +170,7 @@ export class Project_Scene extends Scene {
 
         const light_position = vec4(t, 5, 5, 1);
         // The parameters of the Light are: position, color, size
-        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 1000)];
+        program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 500)];
 
         // *** Draw below *** //
 
@@ -215,8 +222,10 @@ export class Project_Scene extends Scene {
 
         // *** Color constants
         const yellow = hex_color("#fac91a");
+        const brightsun = hex_color("#fbd934");
         const green = hex_color("004225"); // grass (or cactus)
         const sand = hex_color("fdee73"); // desert sand
+        const skyblue = hex_color("87ceeb");
 
 
         // *** TODO: Draw airplane.
@@ -227,9 +236,8 @@ export class Project_Scene extends Scene {
             .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
             .times(Mat4.scale(0.2, 1.25, 0.05)));
         
-        let blade_temp = this.blade_transform;
+        let blade_temp = this.blade_transform; 
         console.log(blade_temp);
-        
 
         //this.blade_transform =  this.blade_transform.times(Mat4.rotation(t/500, 0, 0, 1));
 
@@ -259,10 +267,13 @@ export class Project_Scene extends Scene {
         this.backwing1_transform[0][3] -= 2.73;
         this.backwing2_transform[0][3] -= 2.8;
         this.backwing2_transform[1][3] += 0.1;
-        
-        
-        
         blade_temp[0][3] += 1.2;
+
+
+        this.sun_transform[0][3] = t;
+        this.sky_transform[0][3] = t
+        this.floor_transform[0][3] = t;
+
         this.plane.cylinder.draw(context, program_state, this.base_transform, this.materials.test2);
         this.plane.cone.draw(context, program_state, this.tip_transform, this.materials.test4);
         this.plane.cylinder.draw(context, program_state, this.front_transform, this.materials.test3);
@@ -276,15 +287,10 @@ export class Project_Scene extends Scene {
         this.plane.cylinder.draw(context, program_state, this.backwing2_transform, this.materials.test2);
         // *** TODO: Draw 3D landscape.
 
-        /* sun */
-        let sun_transform = Mat4.identity();
-        sun_transform = sun_transform.times(Mat4.translation(13,6,0)).times(Mat4.scale(2,2,2));
-        this.shapes.sphere.draw(context, program_state, sun_transform, this.materials.test.override({color: yellow, ambient: 1}));
-
-        /* grass floor block */
-        let land_transform = Mat4.identity();
-        land_transform = land_transform.times(Mat4.scale(100,1,7)).times(Mat4.translation(0, -14, 0));
-        this.shapes.cube.draw(context, program_state, land_transform, this.materials.test.override({color: sand, ambient: 0.4}));
+        
+        this.shapes.sphere.draw(context, program_state, this.sun_transform, this.materials.sun);
+        this.shapes.cube.draw(context, program_state, this.sky_transform, this.materials.sun.override({color: skyblue}));
+        this.shapes.cube.draw(context, program_state, this.floor_transform, this.materials.sun.override({color: sand}));
 
         /* grass textures */
 

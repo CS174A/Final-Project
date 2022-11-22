@@ -260,7 +260,7 @@ export class Project_Scene extends Scene {
 
                 // Store the info in the array.
                 this.cloud_and_pos_array.push({cloud, x_translation, y_translation});
-            }, 1500);
+            }, 2000);
             this.restart = 0;
         }
 

@@ -24,7 +24,7 @@ export class Project_Scene extends Scene {
             text: new Text_Line(30),
             triangle: new defs.Triangle(),
             cloud: new defs.Cloud(),
-
+            cacti: new defs.Rounded_Capped_Cylinder(20, 200),
         };
         
         // airplane pieces
@@ -50,6 +50,8 @@ export class Project_Scene extends Scene {
                 {ambient: 0.8, diffusivity: 0.5, specularity: 0.5, color: hex_color("#fdee73")}),
             cloud: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#ffffff")}),
+            cacti: new Material(new defs.Phong_Shader(),
+                {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#59772f")}),
         }
         const texture = new defs.Textured_Phong(1);
         this.text_image = new Material(texture, {
@@ -77,7 +79,6 @@ export class Project_Scene extends Scene {
         this.airplane_model_transform = Mat4.identity();
 
         // landscape:
-        //this.sun_transform = Mat4.identity();
         this.sun_transform = Mat4.scale(15,15,15).times(Mat4.translation(0,0,-2.5));
         this.sky_transform = Mat4.translation(0,0,-30).times(Mat4.scale(100,100,1))
         this.floor_transform = Mat4.scale(50,1,7).times(Mat4.translation(0, -14, 0));
@@ -98,10 +99,6 @@ export class Project_Scene extends Scene {
         this.pipe_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.1,0.1,0.5));
         this.back_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,-1.25));
 
-
-        
-
- 
         
         // *** Control Panel toggles
         this.fly_higher = 0;
@@ -116,7 +113,7 @@ export class Project_Scene extends Scene {
         this.cloud_creation_id = [];
 
         // *** Terrain storage
-        this.terrain_and_pos_array = [];
+        this.t_array = [];
     }
 
     make_control_panel() {
@@ -170,11 +167,15 @@ export class Project_Scene extends Scene {
         console.log("creating set of terrain...")
         // Compute the starting point of cloud and by how many units to drift left.
         let terrain = new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(1);
+        let cactus = new defs.Rounded_Capped_Cylinder(20, 200);
+
         let tx = this.offset;
         this.offset += 35;
-        // creates random val between (1, 6) to determine order of terrain objects
+
+        // creates random val between (1, 10) to determine order 
         let x1, x2, x3;
         let num = Math.floor(Math.random() * (10 - 1 + 1) + 1);
+
         if (tx == 0) num = 1;
         // num = 6;
         switch(num) {
@@ -188,10 +189,10 @@ export class Project_Scene extends Scene {
             case 8: x1 = 1; x2 = .85; x3 = 0; break;
             case 9: x1 = .3; x2 = .4; x3 = 2; break; 
             case 10: x1 = 0; x2 = 2; x3 = 1.7; break; } 
-        this.terrain_and_pos_array.push({terrain, tx, x1, x2, x3});
+        this.t_array.push({terrain, tx, x1, x2, x3, cactus});
         
-        for (let i = 0; i < this.terrain_and_pos_array.length; i++) {
-            console.log(i, this.terrain_and_pos_array[i]);
+        for (let i = 0; i < this.t_array.length; i++) {
+            console.log(i, this.t_array[i]);
         }
     }
 
@@ -259,14 +260,14 @@ export class Project_Scene extends Scene {
 
                 // Store the info in the array.
                 this.cloud_and_pos_array.push({cloud, x_translation, y_translation});
-            }, 2000);
+            }, 1500);
             this.restart = 0;
         }
 
-        // *** Create terrain
+        // *** Create landscape
 
-        // Set new terrain object in every 6 seconds from a random position every 5 sec
-        // Store creation function inside constructor so terrain objects persist across frames.
+        //  25 sec interval of creating objects
+        // Store creation function inside constructor so objects persist across frames.
         // declares function once
         if (this.first_start) {
             this.create_terrain();
@@ -277,7 +278,7 @@ export class Project_Scene extends Scene {
 
 
         // *** Color constants
-        const green = hex_color("004225"); // grass (or cactus)
+
         const skyblue = hex_color("87ceeb");
 
 
@@ -305,6 +306,8 @@ export class Project_Scene extends Scene {
             this.backwing3_transform[i][3] = this.airplane_model_transform[i][3];
             blade_temp[i][3] = this.airplane_model_transform[i][3];
         }
+        //this.wing1_transform = Mat4.translation(t-this.airplane_model_transform[0][3],0,0).times(this.wing1_transform);
+
         this.tip_transform[0][3] += 1.5;
         this.front_transform[0][3] += 0.7;
         this.pipe_transform[0][3] += 1.2;
@@ -341,7 +344,6 @@ export class Project_Scene extends Scene {
         this.shapes.sphere.draw(context, program_state, this.sun_transform, this.materials.sun);
         this.shapes.cube.draw(context, program_state, this.sky_transform, this.materials.sun.override({color: skyblue}));
         this.shapes.cube.draw(context, program_state, this.floor_transform, this.materials.sand);
- 
 
         // *** Control the airplane.
 
@@ -382,29 +384,50 @@ export class Project_Scene extends Scene {
         })
 
 
-        // *** Draw terrain 
-        for (let terrain_and_pos of this.terrain_and_pos_array) {
+        // *** Draw landscape
+        for (let tt of this.t_array) {
             // Calculate and store new translation to drift cloud smoothly to the left.
-            let t_transform = Mat4.scale(9,3,3).times(Mat4.translation(terrain_and_pos.x1,-4.75,-2)).times(Mat4.rotation(Math.PI/2,1,0,1));
-            t_transform = Mat4.translation(terrain_and_pos.tx,0,0).times(t_transform);
+            let t_1 = Mat4.scale(9,3,3).times(Mat4.translation(tt.x1,-4.75,-2)).times(Mat4.rotation(Math.PI/2,1,0,1));
+            t_1 = Mat4.translation(tt.tx,0,0).times(t_1);
 
-            let t_transform2 = Mat4.scale(9,3,3).times(Mat4.translation(terrain_and_pos.x2,-4.75,-1.5)).times(Mat4.rotation(Math.PI/4,1,1,1));
-            t_transform2 = Mat4.translation(terrain_and_pos.tx,0,0).times(t_transform2);
+            let t_2 = Mat4.scale(9,3,3).times(Mat4.translation(tt.x2,-4.75,-1.5)).times(Mat4.rotation(Math.PI/4,1,1,1));
+            t_2 = Mat4.translation(tt.tx,0,0).times(t_2);
 
-            let t_transform3 = Mat4.scale(9,3,4).times(Mat4.translation(terrain_and_pos.x3,-4.75,-2)).times(Mat4.rotation(Math.PI/4,1,1,0));
-            t_transform3 = Mat4.translation(terrain_and_pos.tx,0,0).times(t_transform3);
+            let t_3 = Mat4.scale(9,3,4).times(Mat4.translation(tt.x3,-4.75,-2)).times(Mat4.rotation(Math.PI/4,1,1,0));
+            t_3 = Mat4.translation(tt.tx,0,0).times(t_3);
+
+            let c_1 = Mat4.translation(20 + tt.tx,-12.25,-3).times(Mat4.scale(.25,1.75,.25).times(Mat4.rotation(Math.PI/2, 1, 0, 0)));
+            let c_2 = Mat4.translation(10 + tt.tx,-13.2,-2).times(Mat4.scale(.25,1.75,.25).times(Mat4.rotation(Math.PI/2, 1, 0, 0)));
+            let c_3 = Mat4.translation(0 + tt.tx,-12.6,-1).times(Mat4.scale(.25,1.75,.25).times(Mat4.rotation(Math.PI/2, 1, 0, 0)));
+            let c_4 = Mat4.translation(7 + tt.tx,-12.35,-5).times(Mat4.scale(.25,1.75,.25).times(Mat4.rotation(Math.PI/2, 1, 0, 0)));
+            let c_5 = Mat4.translation(24 + tt.tx,-12.35,-6.5).times(Mat4.scale(.25,1.75,.25).times(Mat4.rotation(Math.PI/2, 1, 0, 0)));
+            let c_6 = Mat4.translation(17 + tt.tx,-12.35,-5).times(Mat4.scale(.25,1.75,.25).times(Mat4.rotation(Math.PI/2, 1, 0, 0)));
+            let c_7 = Mat4.translation(22 + tt.tx,-12.9, 0).times(Mat4.scale(.25,1.75,.25).times(Mat4.rotation(Math.PI/2, 1, 0, 0)));
+
+            tt.terrain.draw(context, program_state, t_1, this.materials.sand);
+            tt.terrain.draw(context, program_state, t_2, this.materials.sand);
+            tt.terrain.draw(context, program_state, t_3, this.materials.sand);
+
+            tt.cactus.draw(context, program_state, c_1, this.materials.cacti);
+            tt.cactus.draw(context, program_state, c_2, this.materials.cacti);
+            tt.cactus.draw(context, program_state, c_3, this.materials.cacti);
+            tt.cactus.draw(context, program_state, c_4, this.materials.cacti);
+            tt.cactus.draw(context, program_state, c_5, this.materials.cacti);
+            tt.cactus.draw(context, program_state, c_6, this.materials.cacti);
+            tt.cactus.draw(context, program_state, c_7, this.materials.cacti);
         
-            terrain_and_pos.terrain.draw(context, program_state, t_transform, this.materials.sand);
-            terrain_and_pos.terrain.draw(context, program_state, t_transform2, this.materials.sand);
-            terrain_and_pos.terrain.draw(context, program_state, t_transform3, this.materials.sand);
         }
 
-        // delete 
-        this.terrain_and_pos_array = this.terrain_and_pos_array.filter((terrain_and_pos) => {
+       
+        
+
+
+        // delete terrain once it lefts the left of viewport
+        this.t_array = this.t_array.filter((terrain_and_pos) => {
             if (!((terrain_and_pos.tx + 30) > this.viewport_left)) {
                 console.log("deleting most left terrain...");
-                for (let i = 0; i < this.terrain_and_pos_array.length; i ++) {
-                    console.log(i, this.terrain_and_pos_array[i]);
+                for (let i = 0; i < this.t_array.length; i ++) {
+                    console.log(i, this.t_array[i]);
                 }
             }
             return ((terrain_and_pos.tx + 30) > this.viewport_left);
@@ -421,7 +444,7 @@ export class Project_Scene extends Scene {
         let airplane_bottom = this.airplane_model_transform[1][3] - airplane_radius;
 
         // Check if airplane goes above or below viewport extremes.
-        if (airplane_top >= this.viewport_top || airplane_bottom <= this.viewport_bottom) {
+        if (airplane_top >= this.viewport_top - 1.25 || airplane_bottom <= this.viewport_bottom + 2) {
             this.game_over(context, program_state);
         }
 

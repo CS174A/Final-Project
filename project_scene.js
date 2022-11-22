@@ -112,6 +112,10 @@ export class Project_Scene extends Scene {
         // *** Cloud storage
         this.cloud_and_pos_array = []
         this.cloud_creation_id = [];
+
+        // *** Terrain storage
+        this.terrain_and_pos_array = [];
+        this.terrain_creation_id = [];
     }
 
     make_control_panel() {
@@ -143,7 +147,9 @@ export class Project_Scene extends Scene {
         this.first_start = 0; // redundant.
         this.restart = 1;
         this.cloud_and_pos_array.length = 0;
+        this.terrain_and_pos_array.length = 0;
         clearInterval(this.cloud_creation_id);
+        clearInterval(this.terrain_creation_id);
     }
 
     game_over(context, program_state) {
@@ -228,6 +234,25 @@ export class Project_Scene extends Scene {
             this.first_start = 0;
             this.restart = 0;
         }
+
+        // *** Create terrain
+
+        // Set new terrain object in every 3-4 seconds from a random position within a set interval.
+        // Store creation function inside constructor so terrain objects persist across frames.
+        if (this.first_start || this.restart) {
+            this.terrain_creation_id = setInterval(() => {
+                // Compute the starting point of cloud and by how many units to drift left.
+                const terrain = new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(1);
+                const x_translation = this.airplane_model_transform[0][3] + this.viewport_width / 2;
+                const y_translation = Math.random() * (Math.floor(4) - Math.ceil(-12) + 1) + Math.ceil(-8);
+
+                // Store the info in the array.
+                this.terrain_and_pos_array.push({terrain, x_translation, y_translation});
+            }, 3000);
+            this.first_start = 0;
+            this.restart = 0;
+        }
+
 
         // *** Color constants
         const yellow = hex_color("#fac91a");
@@ -343,6 +368,9 @@ export class Project_Scene extends Scene {
         this.cloud_and_pos_array = this.cloud_and_pos_array.filter((cloud_and_pos) => {
             return ((cloud_and_pos.x_translation + cloud_radius) > this.viewport_left);
         })
+
+        // *** Draw terrain 
+
 
         // *** End game if airplane leaves viewport
 

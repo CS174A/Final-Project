@@ -23,6 +23,8 @@ export class Project_Scene extends Scene {
             s4: new defs.Subdivision_Sphere(4),
             text: new Text_Line(30),
             triangle: new defs.Triangle(),
+            cloud: new defs.Cloud(),
+
         };
         
         // airplane pieces
@@ -224,7 +226,7 @@ export class Project_Scene extends Scene {
         if (this.first_start || this.restart) {
             this.cloud_creation_id = setInterval(() => {
                 // Compute the starting point of cloud and by how many units to drift left.
-                const cloud = new defs.Torus(15, 15);
+                const cloud = new defs.Cloud(15, 15);
                 const x_translation = this.airplane_model_transform[0][3] + this.viewport_width / 2;
                 const y_translation = Math.random() * (Math.floor(4) - Math.ceil(-12) + 1) + Math.ceil(-8);
 
@@ -260,6 +262,7 @@ export class Project_Scene extends Scene {
         const green = hex_color("004225"); // grass (or cactus)
         const sand = hex_color("fdee73"); // desert sand
         const skyblue = hex_color("87ceeb");
+        const white = hex_color("#ffffff");
 
 
         // *** TODO: Draw airplane.
@@ -353,7 +356,7 @@ export class Project_Scene extends Scene {
             cloud_model_transform = cloud_model_transform
                 .times(Mat4.translation(cloud_and_pos.x_translation, cloud_and_pos.y_translation, 0));
 
-            cloud_and_pos.cloud.draw(context, program_state, cloud_model_transform, this.materials.test.override({color: yellow}))
+            cloud_and_pos.cloud.draw(context, program_state, cloud_model_transform, this.materials.test.override({color: white}))
         }
 
         // *** Delete invisible clouds

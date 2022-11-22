@@ -243,11 +243,11 @@ export class Project_Scene extends Scene {
             this.terrain_creation_id = setInterval(() => {
                 // Compute the starting point of cloud and by how many units to drift left.
                 const terrain = new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(1);
-                const x_translation = this.airplane_model_transform[0][3] + this.viewport_width / 2;
-                const y_translation = Math.random() * (Math.floor(4) - Math.ceil(-12) + 1) + Math.ceil(-8);
+                const tx_translation = this.airplane_model_transform[0][3] + this.viewport_width / 2;
+                const ty_translation = Math.random() * (Math.floor(4) - Math.ceil(-12) + 1) + Math.ceil(-8);
 
                 // Store the info in the array.
-                this.terrain_and_pos_array.push({terrain, x_translation, y_translation});
+                this.terrain_and_pos_array.push({terrain, tx_translation, ty_translation});
             }, 3000);
             this.first_start = 0;
             this.restart = 0;
@@ -370,6 +370,21 @@ export class Project_Scene extends Scene {
         })
 
         // *** Draw terrain 
+        for (let terrain_and_pos of this.terrain_and_pos_array) {
+            // Calculate and store new translation to drift cloud smoothly to the left.
+            terrain_and_pos.tx_translation = terrain_and_pos.tx_translation - 0.05;
+
+            let terrain_model_transform = Mat4.identity();
+            terrain_model_transform = terrain_model_transform
+                .times(Mat4.translation(terrain_and_pos.tx_translation, terrain_and_pos.ty_translation, 0));
+
+            terrain_and_pos.terrain.draw(context, program_state, terrain_model_transform, this.materials.test.override({color: sand}))
+        }
+
+        // Only keep terrains that are still within the viewport.
+        this.terrain_and_pos_array = this.terrain_and_pos_array.filter((terrain_and_pos) => {
+            return ((terrain_and_pos.tx_translation + cloud_radius) > this.viewport_left);
+        })
 
 
         // *** End game if airplane leaves viewport

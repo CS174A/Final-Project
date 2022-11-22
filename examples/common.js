@@ -361,6 +361,82 @@ const Torus = defs.Torus =
         }
     }
 
+const Cloud = defs.Cloud =
+    class Cloud extends Shape {
+        // Build a donut shape.  An example of a surface of revolution.
+        constructor(rows, columns, texture_range) {
+            super("position", "normal", "texture_coord");
+
+            const semi_circle_points = Array(rows).fill(vec3(0, 0, .5)).map((x, i, a) =>
+                Mat4.rotation(i / (a.length - 1) * Math.PI, 0, 1, 0).times(x.to4(1)).to3());
+
+
+            const circle_points = Array(rows).fill(vec3(1 / 4, 0, 0))
+                .map((p, i, a) => Mat4.translation(-1.5/4, 0, 0)
+                    .times(Mat4.rotation(i / (a.length - 1) * 2 * Math.PI, 0, -1, 0))
+                    .times(Mat4.scale(1, 1, 1))
+                    .times(p.to4(1)).to3());
+
+            Surface_Of_Revolution.insert_transformed_copy_into(this, [rows, columns, semi_circle_points, texture_range]);
+
+            const circle_points2 = Array(rows).fill(vec3(1 / 4, 0, 0))
+                .map((p, i, a) => Mat4.translation(-1/4, 0, 0)
+                    .times(Mat4.rotation(i / (a.length - 1) * 2 * Math.PI, 0, -1, 0))
+                    .times(Mat4.scale(1, 1, 1))
+                    .times(p.to4(1)).to3());
+
+            Surface_Of_Revolution.insert_transformed_copy_into(this, [rows, columns, semi_circle_points, texture_range], Mat4.translation(.25,.45 ,0 , ));
+
+            const circle_points3 = Array(rows).fill(vec3(1 / 4, 0, 0))
+                .map((p, i, a) => Mat4.translation(-1.65/4, 0, 0)
+                    .times(Mat4.rotation(i / (a.length - 1) * 2 * Math.PI, 0, -1, 0))
+                    .times(Mat4.scale(1, 1, 1))
+                    .times(p.to4(1)).to3());
+
+            Surface_Of_Revolution.insert_transformed_copy_into(this, [rows, columns, semi_circle_points, texture_range], Mat4.translation(.5,-.25 ,0 , ));
+
+            const circle_points4 = Array(rows).fill(vec3(1/4, 0, 0))
+                .map((p, i, a) => Mat4.translation(-1.55/4, 0, 0)
+                    .times(Mat4.rotation(i / (a.length - 1) * 2 * Math.PI, 0, -1, 0))
+                    .times(Mat4.scale(1, 1, 1))
+                    .times(p.to4(1)).to3());
+
+            Surface_Of_Revolution.insert_transformed_copy_into(this, [rows, columns, semi_circle_points, texture_range], Mat4.translation(.88,-.15 ,0 , ));
+
+            const circle_points5 = Array(rows).fill(vec3(1/4, 0, 0))
+                .map((p, i, a) => Mat4.translation(-1.17/4, 0, 0)
+                    .times(Mat4.rotation(i / (a.length - 1) * 2 * Math.PI, 0, -1, 0))
+                    .times(Mat4.scale(1, 1, 1))
+                    .times(p.to4(1)).to3());
+
+            Surface_Of_Revolution.insert_transformed_copy_into(this, [rows, columns, semi_circle_points, texture_range], Mat4.translation(.9,.4 ,0 , ));
+
+            const circle_points6 = Array(rows).fill(vec3(1/4, 0, 0))
+                .map((p, i, a) => Mat4.translation(-1.35/4, 0, 0)
+                    .times(Mat4.rotation(i / (a.length - 1) * 2 * Math.PI, 0, -1, 0))
+                    .times(Mat4.scale(1, 1, 1))
+                    .times(p.to4(1)).to3());
+
+            Surface_Of_Revolution.insert_transformed_copy_into(this, [rows, columns, semi_circle_points, texture_range], Mat4.translation(1.2,.18 ,0.1 , ));
+
+            const circle_points7 = Array(rows).fill(vec3(1/4, 0, 0))
+                .map((p, i, a) => Mat4.translation(-1.15/4, 0, 0)
+                    .times(Mat4.rotation(i / (a.length - 1) * 2 * Math.PI, 0, -1, 0))
+                    .times(Mat4.scale(1, 1, 1))
+                    .times(p.to4(1)).to3());
+
+            Surface_Of_Revolution.insert_transformed_copy_into(this, [rows, columns, semi_circle_points, texture_range], Mat4.translation(.45,.3 ,.17 , ));
+
+
+
+            //Surface_Of_Revolution.insert_transformed_copy_into(this, [rows, columns, semi_circle_points, texture_range]);
+
+            //Subdivision_Sphere.insert_transformed_copy_into(this, [3], Mat4.rotation(Math.PI / 2, 0, 1, 0).times(Mat4.scale(.25, .25, .25)));
+            //Surface_Of_Revolution.insert_transformed_copy_into(this, [1, columns], Mat4.rotation(Math.PI, 0, 1, 0));
+        }
+    }
+
+
 const Grid_Sphere = defs.Grid_Sphere =
     class Grid_Sphere extends Shape {
         // With lattitude / longitude divisions; this means singularities are at

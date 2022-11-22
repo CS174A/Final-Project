@@ -48,7 +48,8 @@ export class Project_Scene extends Scene {
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#fbd934")}),
             sand: new Material(new defs.Phong_Shader(),
                 {ambient: 0.8, diffusivity: 0.5, specularity: 0.5, color: hex_color("#fdee73")}),
-
+            cloud: new Material(new defs.Phong_Shader(),
+                {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#ffffff")}),
         }
         const texture = new defs.Textured_Phong(1);
         this.text_image = new Material(texture, {
@@ -80,9 +81,6 @@ export class Project_Scene extends Scene {
         this.sun_transform = Mat4.scale(15,15,15).times(Mat4.translation(0,0,-2.5));
         this.sky_transform = Mat4.translation(0,0,-30).times(Mat4.scale(100,100,1))
         this.floor_transform = Mat4.scale(50,1,7).times(Mat4.translation(0, -14, 0));
-        this.sand_transform = Mat4.scale(9,3,3).times(Mat4.translation(0,-4.75,-2)).times(Mat4.rotation(Math.PI/2,1,0,1));
-        this.sand_transform2 = Mat4.scale(9,3,3).times(Mat4.translation(2,-4.75,-1.5)).times(Mat4.rotation(Math.PI/4,1,1,1));
-        this.sand_transform3 = Mat4.scale(9,3,4).times(Mat4.translation(1.7,-4.75,-2)).times(Mat4.rotation(Math.PI/4,1,1,0));
 
         // air plane body
         this.base_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,1.45));
@@ -119,7 +117,6 @@ export class Project_Scene extends Scene {
 
         // *** Terrain storage
         this.terrain_and_pos_array = [];
-        this.terrain_creation_id = [];
     }
 
     make_control_panel() {
@@ -151,9 +148,7 @@ export class Project_Scene extends Scene {
         this.first_start = 0; // redundant.
         this.restart = 1;
         this.cloud_and_pos_array.length = 0;
-        //this.terrain_and_pos_array.length = 0;
         clearInterval(this.cloud_creation_id);
-        //clearInterval(this.terrain_creation_id);
     }
 
     game_over(context, program_state) {
@@ -170,6 +165,35 @@ export class Project_Scene extends Scene {
         this.start_game = 0;
         this.first_start = 0; // redundant.
     }
+    
+    create_terrain() {
+        console.log("creating set of terrain...")
+        // Compute the starting point of cloud and by how many units to drift left.
+        let terrain = new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(1);
+        let tx = this.offset;
+        this.offset += 35;
+        // creates random val between (1, 6) to determine order of terrain objects
+        let x1, x2, x3;
+        let num = Math.floor(Math.random() * (10 - 1 + 1) + 1);
+        if (tx == 0) num = 1;
+        // num = 6;
+        switch(num) {
+            case 1: x1 = 0; x2 = 2; x3 = 1.7; break; 
+            case 2: x1 = 0; x2 = .75; x3 = 2; break; 
+            case 3: x1 = 1; x2 = 1.3; x3 = 0; break; 
+            case 4: x1 = 2; x2 = 1.7; x3 = 0; break; 
+            case 5: x1 = 1.5; x2 = 0; x3 = .3; break; 
+            case 6: x1 = 1.7; x2 = 2; x3 = 0; break; 
+            case 7: x1 = 0; x2 = 1; x3 = 1.7; break; 
+            case 8: x1 = 1; x2 = .85; x3 = 0; break;
+            case 9: x1 = .3; x2 = .4; x3 = 2; break; 
+            case 10: x1 = 0; x2 = 2; x3 = 1.7; break; } 
+        this.terrain_and_pos_array.push({terrain, tx, x1, x2, x3});
+        
+        for (let i = 0; i < this.terrain_and_pos_array.length; i++) {
+            console.log(i, this.terrain_and_pos_array[i]);
+        }
+    }
 
     display(context, program_state) {
         // *** Setup *** //
@@ -184,9 +208,10 @@ export class Project_Scene extends Scene {
 
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, .1, 1000);
-
+        
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
-
+       
+        
         const light_position = vec4(t, 5, 5, 1);
         // The parameters of the Light are: position, color, size
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 500)];
@@ -235,43 +260,28 @@ export class Project_Scene extends Scene {
                 // Store the info in the array.
                 this.cloud_and_pos_array.push({cloud, x_translation, y_translation});
             }, 2000);
-            //this.first_start = 0;
-            //this.restart = 0;
+            this.restart = 0;
         }
 
         // *** Create terrain
 
-        // Set new terrain object in every 6 seconds from a random position within a set interval.
+        // Set new terrain object in every 6 seconds from a random position every 5 sec
         // Store creation function inside constructor so terrain objects persist across frames.
-        if (this.first_start || this.restart) {
-            this.terrain_creation_id = setInterval(() => {
-                // Compute the starting point of cloud and by how many units to drift left.
-                const terrain = new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(1);
-                this.offset += 35;
-                const tx = this.offset;
-                //const tx = this.airplane_model_transform[0][3] + this.viewport_width / 2;
-                const ty = 0;
-
-                // Store the info in the array.
-                this.terrain_and_pos_array.push({terrain, tx, ty});
-            }, 5000);
+        // declares function once
+        if (this.first_start) {
+            this.create_terrain();
+            this.create_terrain();
+            setInterval(() => this.create_terrain(), 25000);
             this.first_start = 0;
-            this.restart = 0;
         }
 
 
         // *** Color constants
-        const yellow = hex_color("#fac91a");
-        const brightsun = hex_color("#fbd934");
         const green = hex_color("004225"); // grass (or cactus)
-        const sand = hex_color("fdee73"); // desert sand
         const skyblue = hex_color("87ceeb");
-        const white = hex_color("#ffffff");
 
 
-        // *** TODO: Draw airplane.
-        //this.shapes.torus.draw(context, program_state, this.airplane_model_transform, this.materials.test.override({color: yellow}));
-
+        // *** Airplane:
         // draw base of plane:
         this.blade_transform = Mat4.identity().times(Mat4.rotation(10*t, 1, 0, 0)
             .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
@@ -331,13 +341,7 @@ export class Project_Scene extends Scene {
         this.shapes.sphere.draw(context, program_state, this.sun_transform, this.materials.sun);
         this.shapes.cube.draw(context, program_state, this.sky_transform, this.materials.sun.override({color: skyblue}));
         this.shapes.cube.draw(context, program_state, this.floor_transform, this.materials.sand);
-        this.shapes.s1.draw(context, program_state, this.sand_transform, this.materials.sand);
-        this.shapes.s1.draw(context, program_state, this.sand_transform2, this.materials.sand);
-        this.shapes.s1.draw(context, program_state, this.sand_transform3, this.materials.sand);
-
-        // if 10 sec passed draw next terrain
-
-        /* sand terrain generator */
+ 
 
         // *** Control the airplane.
 
@@ -361,7 +365,7 @@ export class Project_Scene extends Scene {
             cloud_model_transform = cloud_model_transform
                 .times(Mat4.translation(cloud_and_pos.x_translation, cloud_and_pos.y_translation, 0));
 
-            cloud_and_pos.cloud.draw(context, program_state, cloud_model_transform, this.materials.test.override({color: white}))
+            cloud_and_pos.cloud.draw(context, program_state, cloud_model_transform, this.materials.cloud);
         }
 
         // *** Delete invisible clouds
@@ -377,25 +381,17 @@ export class Project_Scene extends Scene {
             return ((cloud_and_pos.x_translation + cloud_radius) > this.viewport_left);
         })
 
-        // this.sand_transform = Mat4.scale(9,3,3).times(Mat4.translation(0,-4.75,-2)).times(Mat4.rotation(Math.PI/2,1,0,1));
-        // this.sand_transform2 = Mat4.scale(9,3,3).times(Mat4.translation(2,-4.75,-1.5)).times(Mat4.rotation(Math.PI/4,1,1,1));
-        // this.sand_transform3 = Mat4.scale(9,3,4).times(Mat4.translation(1.7,-4.75,-2)).times(Mat4.rotation(Math.PI/4,1,1,0));
 
         // *** Draw terrain 
         for (let terrain_and_pos of this.terrain_and_pos_array) {
             // Calculate and store new translation to drift cloud smoothly to the left.
-   
-            // let terrain_model_transform = Mat4.identity();
-            // terrain_model_transform = terrain_model_transform
-            //     .times(Mat4.translation(terrain_and_pos.tx, terrain_and_pos.ty, 0));
-
-            let t_transform = Mat4.scale(9,3,3).times(Mat4.translation(0,-4.75,-2)).times(Mat4.rotation(Math.PI/2,1,0,1));
+            let t_transform = Mat4.scale(9,3,3).times(Mat4.translation(terrain_and_pos.x1,-4.75,-2)).times(Mat4.rotation(Math.PI/2,1,0,1));
             t_transform = Mat4.translation(terrain_and_pos.tx,0,0).times(t_transform);
 
-            let t_transform2 = Mat4.scale(9,3,3).times(Mat4.translation(2,-4.75,-1.5)).times(Mat4.rotation(Math.PI/4,1,1,1));
+            let t_transform2 = Mat4.scale(9,3,3).times(Mat4.translation(terrain_and_pos.x2,-4.75,-1.5)).times(Mat4.rotation(Math.PI/4,1,1,1));
             t_transform2 = Mat4.translation(terrain_and_pos.tx,0,0).times(t_transform2);
 
-            let t_transform3 = Mat4.scale(9,3,4).times(Mat4.translation(1.7,-4.75,-2)).times(Mat4.rotation(Math.PI/4,1,1,0));
+            let t_transform3 = Mat4.scale(9,3,4).times(Mat4.translation(terrain_and_pos.x3,-4.75,-2)).times(Mat4.rotation(Math.PI/4,1,1,0));
             t_transform3 = Mat4.translation(terrain_and_pos.tx,0,0).times(t_transform3);
         
             terrain_and_pos.terrain.draw(context, program_state, t_transform, this.materials.sand);
@@ -403,7 +399,16 @@ export class Project_Scene extends Scene {
             terrain_and_pos.terrain.draw(context, program_state, t_transform3, this.materials.sand);
         }
 
-
+        // delete 
+        this.terrain_and_pos_array = this.terrain_and_pos_array.filter((terrain_and_pos) => {
+            if (!((terrain_and_pos.tx + 30) > this.viewport_left)) {
+                console.log("deleting most left terrain...");
+                for (let i = 0; i < this.terrain_and_pos_array.length; i ++) {
+                    console.log(i, this.terrain_and_pos_array[i]);
+                }
+            }
+            return ((terrain_and_pos.tx + 30) > this.viewport_left);
+        })
 
 
         // *** End game if airplane leaves viewport
@@ -421,9 +426,6 @@ export class Project_Scene extends Scene {
         }
 
         // *** Detect airplane-cloud collisions.
-
-        console.log("x coord of plane: ", this.airplane_model_transform[0][3]);
-
         // Calculate vertical airplane extremes.
         let airplane_left = this.airplane_model_transform[0][3] - airplane_radius;
         let airplane_right = this.airplane_model_transform[0][3] + airplane_radius;
@@ -449,7 +451,6 @@ export class Project_Scene extends Scene {
             // console.log("left_airplane:", left_airplane, "right_airplane:", right_airplane);
             // console.log("viewport width:", this.viewport_width);
             console.log("cloud_and_pos_array.length:", this.cloud_and_pos_array.length);
-            //console.log("x coord of plane: ", this.airplane_model_transform[0][3]);
             this.debug_logs ^= 1;
         }
 

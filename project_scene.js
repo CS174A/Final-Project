@@ -176,7 +176,7 @@ export class Project_Scene extends Scene {
         let x1, x2, x3;
         let num = Math.floor(Math.random() * (10 - 1 + 1) + 1);
 
-        if (tx == 0) num = 1;
+        //if (tx == 0) num = 1;
         // num = 6;
         switch(num) {
             case 1: x1 = 0; x2 = 2; x3 = 1.7; break; 

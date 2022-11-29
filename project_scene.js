@@ -193,8 +193,8 @@ export class Project_Scene extends Scene {
         this.print_string(context, program_state, text_model_transform, "Score: " + String(this.coins));
     }
 
+    // creates a set of terrain
     create_terrain() {
-        console.log("creating set of terrain...")
         // Compute the starting point of cloud and by how many units to drift left.
         let terrain = new (defs.Subdivision_Sphere.prototype.make_flat_shaded_version())(1);
         let cactus = new defs.Rounded_Capped_Cylinder(20, 200);
@@ -220,10 +220,6 @@ export class Project_Scene extends Scene {
             case 9: x1 = .3; x2 = .4; x3 = 2; break;
             case 10: x1 = 0; x2 = 2; x3 = 1.7; break; }
         this.t_array.push({terrain, tx, x1, x2, x3, cactus});
-
-        for (let i = 0; i < this.t_array.length; i++) {
-            console.log(i, this.t_array[i]);
-        }
     }
 
     display(context, program_state) {
@@ -500,7 +496,6 @@ export class Project_Scene extends Scene {
         if (airplane_top >= this.viewport_top - 2.25 || airplane_bottom <= this.viewport_bottom + 2.75) {
             this.game_over(context, program_state);
         }
-        console.log("coins: ", this.coins);
 
         // *** Detect airplane-cloud collisions.
         // Calculate vertical airplane extremes.

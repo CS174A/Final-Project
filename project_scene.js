@@ -418,7 +418,8 @@ export class Project_Scene extends Scene {
             let coin_model_transform = Mat4.identity();
             coin_model_transform = coin_model_transform
                 .times(Mat4.translation(coin_and_pos.x_translation, coin_and_pos.y_translation, 0));
-
+            coin_model_transform = coin_model_transform
+                .times(Mat4.rotation(2*t, 0, 1, 0));
             coin_and_pos.coin.draw(context, program_state, coin_model_transform, this.materials.coin);
         }
 

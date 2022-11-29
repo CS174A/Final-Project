@@ -52,7 +52,7 @@ export class Project_Scene extends Scene {
             cloud: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#ffffff")}),
             coin: new Material(new defs.Textured_Phong(),
-                {ambient: .6, diffusivity: 0.5, specularity: 0.5, texture: new Texture("assets/stars.png"), color: hex_color("#e6df2c")}),
+                {ambient: .5, diffusivity: 0.5, specularity: 0.5, texture: new Texture("assets/stars.png"), color: hex_color("#e6df2c")}),
             cacti: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#59772f")}),
         }
@@ -296,7 +296,7 @@ export class Project_Scene extends Scene {
 
                 // Store the info in the array.
                 this.coin_and_pos_array.push({coin, x_translation, y_translation});
-            }, 1500);
+            }, 2000);
             this.restart = 0;
         }
 

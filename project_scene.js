@@ -169,10 +169,10 @@ export class Project_Scene extends Scene {
             .times(Mat4.translation(-15, - y_translation, -5));
         this.print_string(context, program_state, text_model_transform, "Game Over :(")
         text_model_transform = text_model_transform
-            .times(Mat4.translation(0, -3 , 0));
+            .times(Mat4.translation(-.25, -3 , 0));
         this.print_string(context, program_state, text_model_transform, "Press [s] to start over")
         text_model_transform = text_model_transform
-            .times(Mat4.translation(0, -3 , 0));
+            .times(Mat4.translation(-.25, -3 , 0));
         this.print_string(context, program_state, text_model_transform, "Score: " + String(this.coins))
         
 

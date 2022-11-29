@@ -51,8 +51,8 @@ export class Project_Scene extends Scene {
                 {ambient: 0.8, diffusivity: 0.5, specularity: 0.5, color: hex_color("#fdee73")}),
             cloud: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#ffffff")}),
-            coin: new Material(new defs.Phong_Shader(),
-                {ambient: .6, diffusivity: 0.5, specularity: 0.5, color: hex_color("#e6df2c")}),
+            coin: new Material(new defs.Textured_Phong(),
+                {ambient: .6, diffusivity: 0.5, specularity: 0.5, texture: new Texture("assets/stars.png"), color: hex_color("#e6df2c")}),
             cacti: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#59772f")}),
         }

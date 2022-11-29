@@ -52,7 +52,7 @@ export class Project_Scene extends Scene {
             cloud: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#ffffff")}),
             coin: new Material(new defs.Textured_Phong(),
-                {ambient: .5, diffusivity: 0.5, specularity: 0.5, texture: new Texture("assets/stars.png"), color: hex_color("#e6df2c")}),
+                {ambient: 0.5, diffusivity: 0, specularity: 0.5, texture: new Texture("assets/starcoin.png"), color: hex_color("#e6df2c")}),
             cacti: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#59772f")}),
         }
@@ -124,6 +124,7 @@ export class Project_Scene extends Scene {
 
         // *** Coins:
         this.coins = 0;
+
     }
 
     make_control_panel() {
@@ -290,7 +291,8 @@ export class Project_Scene extends Scene {
             }, 2000);
             this.coin_creation_id = setInterval(() => {
                 // Compute the starting point of coin and by how many units to drift left.
-                const coin = new defs.Coin(15, 15);
+                //const coin = new defs.Coin(15, 15);
+                const coin = new defs.Capped_Cylinder(20, 200);
                 const x_translation = this.airplane_model_transform[0][3] + this.viewport_width / 2 + .65;
                 y_translation = Math.random() * (Math.floor(4) - Math.ceil(-12) + 1) + Math.ceil(-8);
 
@@ -412,10 +414,14 @@ export class Project_Scene extends Scene {
             coin_and_pos.x_translation = coin_and_pos.x_translation - 0.05;
 
             let coin_model_transform = Mat4.identity();
+
+            
             coin_model_transform = coin_model_transform
                 .times(Mat4.translation(coin_and_pos.x_translation, coin_and_pos.y_translation, 0));
             coin_model_transform = coin_model_transform
-                .times(Mat4.rotation(2*t, 0, 1, 0));
+                .times(Mat4.rotation(2.5*t, 0, 1, 0));
+            coin_model_transform = coin_model_transform
+                .times(Mat4.scale(1, 1, 1/4));
             coin_and_pos.coin.draw(context, program_state, coin_model_transform, this.materials.coin);
         }
 

@@ -437,6 +437,7 @@ export class Project_Scene extends Scene {
         this.cloud_and_pos_array = this.cloud_and_pos_array.filter((cloud_and_pos) => {
             return ((cloud_and_pos.x_translation + cloud_radius) > this.viewport_left);
         })
+        // delete coins that leave viewport
         this.coin_and_pos_array = this.coin_and_pos_array.filter((coin_and_pos) => {
             return ((coin_and_pos.x_translation + cloud_radius) > this.viewport_left);
         })

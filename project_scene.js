@@ -155,6 +155,7 @@ export class Project_Scene extends Scene {
         this.first_start = 0; // redundant.
         this.restart = 1;
         this.cloud_and_pos_array.length = 0;
+        this.coins = 0;
         clearInterval(this.cloud_creation_id);
         //coin
         this.coin_and_pos_array.length = 0;
@@ -168,17 +169,28 @@ export class Project_Scene extends Scene {
             .times(Mat4.translation(-15, - y_translation, -5));
         this.print_string(context, program_state, text_model_transform, "Game Over :(")
         text_model_transform = text_model_transform
-            .times(Mat4.translation(-1, -3 , 0));
+            .times(Mat4.translation(0, -3 , 0));
         this.print_string(context, program_state, text_model_transform, "Press [s] to start over")
+        text_model_transform = text_model_transform
+            .times(Mat4.translation(0, -3 , 0));
+        this.print_string(context, program_state, text_model_transform, "Score: " + String(this.coins))
+        
 
         this.is_game_over = 1;
         this.start_game = 0;
         this.first_start = 0; // redundant.
-        this.coins = 0;
+        
     }
 
     add_coin() {
         this.coins += 1;
+    }
+
+    display_coins(context, program_state) {
+        const y_translation = this.airplane_model_transform[1][3] - 6;
+        let text_model_transform = this.airplane_model_transform
+            .times(Mat4.translation(-15, - y_translation, -5));
+        this.print_string(context, program_state, text_model_transform, "Score: " + String(this.coins));
     }
 
     create_terrain() {
@@ -523,21 +535,7 @@ export class Project_Scene extends Scene {
                 index--;
             }
         }
-
-        // for (let coin_and_pos of this.coin_and_pos_array) {
-        //     let coin_right = coin_and_pos.x_translation + cloud_radius;
-        //     let coin_left = coin_and_pos.x_translation - cloud_radius;
-        //     let coin_top = coin_and_pos.y_translation + cloud_radius;
-        //     let coin_bottom = coin_and_pos.y_translation - cloud_radius;
-        //
-        //     let coinFlag1 = ((airplane_right > coin_left) && (coin_right > airplane_left)) ? 1 : 0;
-        //     let coinFlag2 = ((airplane_top > coin_bottom) && (coin_top > airplane_bottom)) ? 1 : 0;
-        //
-        //     if (coinFlag1 && coinFlag2) {
-        //         this.add_coin();
-        //         this.coin_and_pos_array.splice(Array.findIndex(coin_and_pos), 1);
-        //     }
-        // }
+        this.display_coins(context, program_state);
 
         // *** Debug helper
 

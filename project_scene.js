@@ -52,7 +52,7 @@ export class Project_Scene extends Scene {
             cloud: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#ffffff")}),
             coin: new Material(new defs.Phong_Shader(),
-                {ambient: .8, diffusivity: 0.5, specularity: 0.5, color: hex_color("#e6df2c")}),
+                {ambient: .6, diffusivity: 0.5, specularity: 0.5, color: hex_color("#e6df2c")}),
             cacti: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#59772f")}),
         }

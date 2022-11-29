@@ -275,7 +275,7 @@ export class Project_Scene extends Scene {
                 // Compute the starting point of cloud and by how many units to drift left.
                 const cloud = new defs.Cloud(15, 15);
                 const x_translation = this.airplane_model_transform[0][3] + this.viewport_width / 2;
-                y_translation = Math.random() * (Math.floor(4) - Math.ceil(-12) + 1) + Math.ceil(-8);
+                y_translation = Math.random() * (Math.floor(4) - Math.ceil(-12) + 1) + Math.ceil(-10);
 
                 // Store the info in the array.
                 this.cloud_and_pos_array.push({cloud, x_translation, y_translation});
@@ -484,7 +484,7 @@ export class Project_Scene extends Scene {
         let airplane_bottom = this.airplane_model_transform[1][3] - airplane_radius;
 
         // Check if airplane goes above or below viewport extremes.
-        if (airplane_top >= this.viewport_top - 1.25 || airplane_bottom <= this.viewport_bottom + 2) {
+        if (airplane_top >= this.viewport_top - 2.25 || airplane_bottom <= this.viewport_bottom + 2.75) {
             this.game_over(context, program_state);
         }
         console.log("coins: ", this.coins);
@@ -508,19 +508,36 @@ export class Project_Scene extends Scene {
             }
         }
 
-        for (let coin_and_pos of this.coin_and_pos_array) {
-            let coin_right = coin_and_pos.x_translation + cloud_radius;
-            let coin_left = coin_and_pos.x_translation - cloud_radius;
-            let coin_top = coin_and_pos.y_translation + cloud_radius;
-            let coin_bottom = coin_and_pos.y_translation - cloud_radius;
+        for (let index = 0; index < this.coin_and_pos_array.length; index++) {
+            let coin_right = this.coin_and_pos_array[index].x_translation + cloud_radius;
+            let coin_left = this.coin_and_pos_array[index].x_translation - cloud_radius;
+            let coin_top = this.coin_and_pos_array[index].y_translation + cloud_radius;
+            let coin_bottom = this.coin_and_pos_array[index].y_translation - cloud_radius;
 
             let coinFlag1 = ((airplane_right > coin_left) && (coin_right > airplane_left)) ? 1 : 0;
             let coinFlag2 = ((airplane_top > coin_bottom) && (coin_top > airplane_bottom)) ? 1 : 0;
 
             if (coinFlag1 && coinFlag2) {
                 this.add_coin();
+                this.coin_and_pos_array.splice(index, 1);
+                index--;
             }
         }
+
+        // for (let coin_and_pos of this.coin_and_pos_array) {
+        //     let coin_right = coin_and_pos.x_translation + cloud_radius;
+        //     let coin_left = coin_and_pos.x_translation - cloud_radius;
+        //     let coin_top = coin_and_pos.y_translation + cloud_radius;
+        //     let coin_bottom = coin_and_pos.y_translation - cloud_radius;
+        //
+        //     let coinFlag1 = ((airplane_right > coin_left) && (coin_right > airplane_left)) ? 1 : 0;
+        //     let coinFlag2 = ((airplane_top > coin_bottom) && (coin_top > airplane_bottom)) ? 1 : 0;
+        //
+        //     if (coinFlag1 && coinFlag2) {
+        //         this.add_coin();
+        //         this.coin_and_pos_array.splice(Array.findIndex(coin_and_pos), 1);
+        //     }
+        // }
 
         // *** Debug helper
 

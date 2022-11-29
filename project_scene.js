@@ -24,9 +24,10 @@ export class Project_Scene extends Scene {
             text: new Text_Line(30),
             triangle: new defs.Triangle(),
             cloud: new defs.Cloud(),
+            coin: new defs.Coin(),
             cacti: new defs.Rounded_Capped_Cylinder(20, 200),
         };
-        
+
         // airplane pieces
         this.plane = {
             cylinder: new defs.Rounded_Capped_Cylinder(200, 200),
@@ -50,6 +51,8 @@ export class Project_Scene extends Scene {
                 {ambient: 0.8, diffusivity: 0.5, specularity: 0.5, color: hex_color("#fdee73")}),
             cloud: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#ffffff")}),
+            coin: new Material(new defs.Phong_Shader(),
+                {ambient: .8, diffusivity: 0.5, specularity: 0.5, color: hex_color("#e6df2c")}),
             cacti: new Material(new defs.Phong_Shader(),
                 {ambient: 1, diffusivity: 0.5, specularity: 0.5, color: hex_color("#59772f")}),
         }
@@ -58,9 +61,9 @@ export class Project_Scene extends Scene {
             ambient: 1, diffusivity: 0, specularity: 0,
             texture: new Texture("assets/text.png")
         });
-        
+
         this.offset = 0;
-        
+
         //Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
         this.initial_camera_location = Mat4.look_at(vec3(0, 10, 20), vec3(0, 0, 0), vec3(0, 1, 0));
         // Depends on context:
@@ -95,11 +98,11 @@ export class Project_Scene extends Scene {
         this.backwing1_transform = Mat4.rotation(Math.PI/2, 1, 0, 0).times(Mat4.scale(0.25, 1.2, 0.05));
         this.backwing2_transform = Mat4.rotation(Math.PI/3, 0, 0, 1).times(Mat4.rotation(Math.PI/2, 0, 0, 1).times(Mat4.scale(0.3, 0.2, 0.05)));
         this.backwing3_transform = Mat4.rotation(Math.PI/2, 1, 0, 0).times(Mat4.scale(0.5, 0.75, 0.09));
-        
+
         this.pipe_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.1,0.1,0.5));
         this.back_transform = Mat4.rotation(Math.PI/2,0,1,0).times(Mat4.scale(0.45,0.45,-1.25));
 
-        
+
         // *** Control Panel toggles
         this.fly_higher = 0;
         this.debug_logs = 0;
@@ -111,6 +114,10 @@ export class Project_Scene extends Scene {
         // *** Cloud storage
         this.cloud_and_pos_array = []
         this.cloud_creation_id = [];
+
+        //coin storage
+        this.coin_and_pos_array = []
+        this.coin_creation_id = [];
 
         // *** Terrain storage
         this.t_array = [];
@@ -146,6 +153,9 @@ export class Project_Scene extends Scene {
         this.restart = 1;
         this.cloud_and_pos_array.length = 0;
         clearInterval(this.cloud_creation_id);
+        //coin
+        this.coin_and_pos_array.length = 0;
+        clearInterval(this.coin_creation_id);
     }
 
     game_over(context, program_state) {
@@ -162,7 +172,7 @@ export class Project_Scene extends Scene {
         this.start_game = 0;
         this.first_start = 0; // redundant.
     }
-    
+
     create_terrain() {
         console.log("creating set of terrain...")
         // Compute the starting point of cloud and by how many units to drift left.
@@ -172,25 +182,25 @@ export class Project_Scene extends Scene {
         let tx = this.offset;
         this.offset += 35;
 
-        // creates random val between (1, 10) to determine order 
+        // creates random val between (1, 10) to determine order
         let x1, x2, x3;
         let num = Math.floor(Math.random() * (10 - 1 + 1) + 1);
 
         if (tx == 0) num = 1;
         // num = 6;
         switch(num) {
-            case 1: x1 = 0; x2 = 2; x3 = 1.7; break; 
-            case 2: x1 = 0; x2 = .75; x3 = 2; break; 
-            case 3: x1 = 1; x2 = 1.3; x3 = 0; break; 
-            case 4: x1 = 2; x2 = 1.7; x3 = 0; break; 
-            case 5: x1 = 1.5; x2 = 0; x3 = .3; break; 
-            case 6: x1 = 1.7; x2 = 2; x3 = 0; break; 
-            case 7: x1 = 0; x2 = 1; x3 = 1.7; break; 
+            case 1: x1 = 0; x2 = 2; x3 = 1.7; break;
+            case 2: x1 = 0; x2 = .75; x3 = 2; break;
+            case 3: x1 = 1; x2 = 1.3; x3 = 0; break;
+            case 4: x1 = 2; x2 = 1.7; x3 = 0; break;
+            case 5: x1 = 1.5; x2 = 0; x3 = .3; break;
+            case 6: x1 = 1.7; x2 = 2; x3 = 0; break;
+            case 7: x1 = 0; x2 = 1; x3 = 1.7; break;
             case 8: x1 = 1; x2 = .85; x3 = 0; break;
-            case 9: x1 = .3; x2 = .4; x3 = 2; break; 
-            case 10: x1 = 0; x2 = 2; x3 = 1.7; break; } 
+            case 9: x1 = .3; x2 = .4; x3 = 2; break;
+            case 10: x1 = 0; x2 = 2; x3 = 1.7; break; }
         this.t_array.push({terrain, tx, x1, x2, x3, cactus});
-        
+
         for (let i = 0; i < this.t_array.length; i++) {
             console.log(i, this.t_array[i]);
         }
@@ -209,10 +219,10 @@ export class Project_Scene extends Scene {
 
         program_state.projection_transform = Mat4.perspective(
             Math.PI / 4, context.width / context.height, .1, 1000);
-        
+
         const t = program_state.animation_time / 1000, dt = program_state.animation_delta_time / 1000;
-       
-        
+
+
         const light_position = vec4(t, 5, 5, 1);
         // The parameters of the Light are: position, color, size
         program_state.lights = [new Light(light_position, color(1, 1, 1, 1), 500)];
@@ -251,15 +261,25 @@ export class Project_Scene extends Scene {
 
         // Float in one new cloud every 2 seconds from a random position on the y-axis.
         // Store the creation function inside the constructor so that the clouds persist across frames.
+        let y_translation = 0;
         if (this.first_start || this.restart) {
             this.cloud_creation_id = setInterval(() => {
                 // Compute the starting point of cloud and by how many units to drift left.
                 const cloud = new defs.Cloud(15, 15);
                 const x_translation = this.airplane_model_transform[0][3] + this.viewport_width / 2;
-                const y_translation = Math.random() * (Math.floor(4) - Math.ceil(-12) + 1) + Math.ceil(-8);
+                y_translation = Math.random() * (Math.floor(4) - Math.ceil(-12) + 1) + Math.ceil(-8);
 
                 // Store the info in the array.
                 this.cloud_and_pos_array.push({cloud, x_translation, y_translation});
+            }, 1500);
+            this.coin_creation_id = setInterval(() => {
+                // Compute the starting point of coin and by how many units to drift left.
+                const coin = new defs.Coin(15, 15);
+                const x_translation = this.airplane_model_transform[0][3] + this.viewport_width / 2 + .65;
+                y_translation += 2;
+
+                // Store the info in the array.
+                this.coin_and_pos_array.push({coin, x_translation, y_translation});
             }, 1500);
             this.restart = 0;
         }
@@ -287,8 +307,8 @@ export class Project_Scene extends Scene {
         this.blade_transform = Mat4.identity().times(Mat4.rotation(10*t, 1, 0, 0)
             .times(Mat4.rotation(Math.PI/2, 0, 1, 0))
             .times(Mat4.scale(0.2, 1.25, 0.05)));
-        
-        let blade_temp = this.blade_transform; 
+
+        let blade_temp = this.blade_transform;
 
         //this.blade_transform =  this.blade_transform.times(Mat4.rotation(t/500, 0, 0, 1));
 
@@ -340,7 +360,7 @@ export class Project_Scene extends Scene {
         this.plane.cylinder.draw(context, program_state, this.backwing2_transform, this.materials.test2);
         // *** TODO: Draw 3D landscape.
 
-        
+
         this.shapes.sphere.draw(context, program_state, this.sun_transform, this.materials.sun);
         this.shapes.cube.draw(context, program_state, this.sky_transform, this.materials.sun.override({color: skyblue}));
         this.shapes.cube.draw(context, program_state, this.floor_transform, this.materials.sand);
@@ -368,6 +388,18 @@ export class Project_Scene extends Scene {
                 .times(Mat4.translation(cloud_and_pos.x_translation, cloud_and_pos.y_translation, 0));
 
             cloud_and_pos.cloud.draw(context, program_state, cloud_model_transform, this.materials.cloud);
+        }
+
+        //draw coins
+        for (let coin_and_pos of this.coin_and_pos_array) {
+            // Calculate and store new translation to drift coin smoothly to the left.
+            coin_and_pos.x_translation = coin_and_pos.x_translation - 0.05;
+
+            let coin_model_transform = Mat4.identity();
+            coin_model_transform = coin_model_transform
+                .times(Mat4.translation(coin_and_pos.x_translation, coin_and_pos.y_translation, 0));
+
+            coin_and_pos.coin.draw(context, program_state, coin_model_transform, this.materials.coin);
         }
 
         // *** Delete invisible clouds
@@ -415,11 +447,11 @@ export class Project_Scene extends Scene {
             tt.cactus.draw(context, program_state, c_5, this.materials.cacti);
             tt.cactus.draw(context, program_state, c_6, this.materials.cacti);
             tt.cactus.draw(context, program_state, c_7, this.materials.cacti);
-        
+
         }
 
-       
-        
+
+
 
 
         // delete terrain once it lefts the left of viewport

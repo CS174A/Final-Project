@@ -174,6 +174,7 @@ export class Project_Scene extends Scene {
         this.is_game_over = 1;
         this.start_game = 0;
         this.first_start = 0; // redundant.
+        this.coins = 0;
     }
 
     add_coin() {
@@ -283,7 +284,7 @@ export class Project_Scene extends Scene {
                 // Compute the starting point of coin and by how many units to drift left.
                 const coin = new defs.Coin(15, 15);
                 const x_translation = this.airplane_model_transform[0][3] + this.viewport_width / 2 + .65;
-                y_translation += 2;
+                y_translation = Math.random() * (Math.floor(4) - Math.ceil(-12) + 1) + Math.ceil(-8);
 
                 // Store the info in the array.
                 this.coin_and_pos_array.push({coin, x_translation, y_translation});
@@ -486,6 +487,7 @@ export class Project_Scene extends Scene {
         if (airplane_top >= this.viewport_top - 1.25 || airplane_bottom <= this.viewport_bottom + 2) {
             this.game_over(context, program_state);
         }
+        console.log("coins: ", this.coins);
 
         // *** Detect airplane-cloud collisions.
         // Calculate vertical airplane extremes.
@@ -516,7 +518,7 @@ export class Project_Scene extends Scene {
             let coinFlag2 = ((airplane_top > coin_bottom) && (coin_top > airplane_bottom)) ? 1 : 0;
 
             if (coinFlag1 && coinFlag2) {
-                this.add_coin(context, program_state);
+                this.add_coin();
             }
         }
 

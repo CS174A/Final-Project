@@ -419,17 +419,20 @@ export class Project_Scene extends Scene {
             coin_and_pos.coin.draw(context, program_state, coin_model_transform, this.materials.coin);
         }
 
-        // *** Delete invisible clouds
+        // *** Delete invisible clouds and coins
 
         // Calculate left extreme.
         this.viewport_left = this.airplane_model_transform[0][3] - this.viewport_width / 2;
 
         // (More a collision radius than anything else.)
-        let cloud_radius = 0.75; // Adjust after implementing Cloud.
+        let cloud_radius = 0.75; // = coin_radius. Adjust after implementing Cloud.
 
-        // Only keep clouds that are still within the viewport.
+        // Only keep clouds and coins that are still within the viewport.
         this.cloud_and_pos_array = this.cloud_and_pos_array.filter((cloud_and_pos) => {
             return ((cloud_and_pos.x_translation + cloud_radius) > this.viewport_left);
+        })
+        this.coin_and_pos_array = this.coin_and_pos_array.filter((coin_and_pos) => {
+            return ((coin_and_pos.x_translation + cloud_radius) > this.viewport_left);
         })
 
 

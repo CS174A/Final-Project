@@ -121,6 +121,9 @@ export class Project_Scene extends Scene {
 
         // *** Terrain storage
         this.t_array = [];
+
+        // *** Coins:
+        this.coins = 0;
     }
 
     make_control_panel() {
@@ -171,6 +174,10 @@ export class Project_Scene extends Scene {
         this.is_game_over = 1;
         this.start_game = 0;
         this.first_start = 0; // redundant.
+    }
+
+    add_coin() {
+        this.coins += 1;
     }
 
     create_terrain() {
@@ -271,7 +278,7 @@ export class Project_Scene extends Scene {
 
                 // Store the info in the array.
                 this.cloud_and_pos_array.push({cloud, x_translation, y_translation});
-            }, 1500);
+            }, 2000);
             this.coin_creation_id = setInterval(() => {
                 // Compute the starting point of coin and by how many units to drift left.
                 const coin = new defs.Coin(15, 15);
@@ -496,6 +503,20 @@ export class Project_Scene extends Scene {
 
             if (flag1 && flag2) {
                 this.game_over(context, program_state);
+            }
+        }
+
+        for (let coin_and_pos of this.coin_and_pos_array) {
+            let coin_right = coin_and_pos.x_translation + cloud_radius;
+            let coin_left = coin_and_pos.x_translation - cloud_radius;
+            let coin_top = coin_and_pos.y_translation + cloud_radius;
+            let coin_bottom = coin_and_pos.y_translation - cloud_radius;
+
+            let coinFlag1 = ((airplane_right > coin_left) && (coin_right > airplane_left)) ? 1 : 0;
+            let coinFlag2 = ((airplane_top > coin_bottom) && (coin_top > airplane_bottom)) ? 1 : 0;
+
+            if (coinFlag1 && coinFlag2) {
+                this.add_coin(context, program_state);
             }
         }
 

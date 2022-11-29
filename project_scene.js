@@ -496,7 +496,7 @@ export class Project_Scene extends Scene {
         let airplane_bottom = this.airplane_model_transform[1][3] - airplane_radius;
 
         // Check if airplane goes above or below viewport extremes.
-        if (airplane_top >= this.viewport_top - 2.25 || airplane_bottom <= this.viewport_bottom + 2.75) {
+        if (airplane_top >= this.viewport_top - 1.5 || airplane_bottom <= this.viewport_bottom + 2.75) {
             this.game_over(context, program_state);
         }
 
